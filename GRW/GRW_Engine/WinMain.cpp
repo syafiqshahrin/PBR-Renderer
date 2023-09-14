@@ -211,6 +211,35 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //set primitive topology type
     gfxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+    //Set scissor rect
+    //optional functionality
+    //scissor is used to do additionally clipping within the viewport region
+    D3D11_RECT scissorRect;
+    scissorRect.left = 0 + (width/3) ;
+    scissorRect.right = width - (width/3);
+    scissorRect.top = 0 + (height / 3);
+    scissorRect.bottom = height - (height / 3);
+
+    gfxContext->RSSetScissorRects(1, &scissorRect);
+
+    //Set Rasterizer State
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
+
+    D3D11_RASTERIZER_DESC rasterizerDesc;
+    rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    rasterizerDesc.FrontCounterClockwise = true;
+    rasterizerDesc.DepthBias = false;
+    rasterizerDesc.DepthBiasClamp = 0;
+    rasterizerDesc.SlopeScaledDepthBias = 0;
+    rasterizerDesc.DepthClipEnable = true;
+    rasterizerDesc.ScissorEnable = true;
+    rasterizerDesc.MultisampleEnable = false;
+    rasterizerDesc.AntialiasedLineEnable = false;
+    
+    gfxDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState);
+    gfxContext->RSSetState(rasterizerState.Get());
+
     //////////
 
     //back buffer clear color
