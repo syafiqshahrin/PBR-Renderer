@@ -4,17 +4,45 @@
 #include <d3dcompiler.h>
 #include <wrl.h>
 
+enum class PrimType {TRIANGLE_LIST, LINE};
 
 class Renderer
 {
 public:
 	Renderer(HWND hWnd, float WindowWidth, float WindowHeight, bool Windowed);
 	bool InitializeRenderer(HWND hWnd, float WindowWidth, float WindowHeight, bool Windowed);
+	bool SetWindowed(bool Windowed);
+	void SetPrimitiveRenderingMode(const PrimType primitive);
+	bool BindVertexBuffer();
+	bool BindIndexBuffer();
+	bool BindShader();
 private:
+	HRESULT hr;
+	
+	//Main d3d11 handles
 	Microsoft::WRL::ComPtr<ID3D11Device> gfxDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> gfxContext;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> gfxSwapChain;
+
+	//Swapchain stuff
+	DXGI_SWAP_CHAIN_DESC* SwapChainDesc;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> BackBufferRTV;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> backBufferTexResource;
+
+	//Rasterizer and viewport stuff
 	D3D11_VIEWPORT *BaseViewport;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
+	D3D11_RASTERIZER_DESC *rasterizerDesc;
+
+	//Depth Stencil Buffer stuff
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> DepthStencilTexResource;
+	D3D11_TEXTURE2D_DESC *DepthStencilTexDesc;
+	D3D11_DEPTH_STENCIL_DESC* DepthStencilDesc;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> DepthStencilState;
+	D3D11_DEPTH_STENCIL_VIEW_DESC *DepthStencilViewDesc;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
+
+private:
+	bool InitializeDepthStencilBuffer();
 
 };

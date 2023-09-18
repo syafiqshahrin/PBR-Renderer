@@ -108,7 +108,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     gfxContext->RSSetViewports(1, &viewport);
     
-    //Create and bind Vertex Shader
+    
+    //load shader file onto gpu? Only needs to do this once on scene load
+    //Bind shader to context - do this everytime we need to change shaders
+
+    //Shader class - stores path, has shaderID for both vertex and pixel shader, dictionaries for shader data (one dictionary for each type)
+    //LoadedShaderCollection Class - has a dictionary for both vertex and shader dx11 resource, key is path and resource is value
+
+    //Vert Shader
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
     Microsoft::WRL::ComPtr <ID3DBlob> vshaderBlob;
     hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
