@@ -3,6 +3,11 @@
 #include <d3dcompiler.h>
 #include <wrl.h>
 #include <iostream>
+#include <sstream>
+#include "Vector.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include "Debug.h"
 
 //windows callback function for handling messages from OS
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wP, LPARAM lP)
@@ -249,6 +254,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //back buffer clear color
     float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
+    //TEST
+    Vector3 forward = Vector3(0, 0, 1);
+    Vector3 right = Vector3(-1, 0, 0);
+    float ang = forward.Angle(right) * (180 / M_PI);
+    DEBUG("angle: " << ang);
+    DEBUG(forward.prnt().c_str());
+    //
     MSG msg = {};
     //App loop
     while (GetMessage(&msg, nullptr, 0, 0) > 0)
@@ -264,7 +276,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         gfxSwapChain->Present(0, 0); //flip buffers and vsync?
     }
-
 	return 0;
 }
  
