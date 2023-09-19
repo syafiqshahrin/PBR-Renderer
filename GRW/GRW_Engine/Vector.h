@@ -120,6 +120,17 @@ struct Vector3
 		float angle = acos(d / (aM * bM));
 		return angle;
 	}
+
+	Vector3 Negate() const
+	{
+		return *this * -1;
+	}
+
+	float* GetVal()
+	{
+		float val[3] = { x,y,z };
+		return val;
+	}
 };
 
 
@@ -222,6 +233,17 @@ struct Vector2
 		float bM = v2.mag();
 		float angle = acos(d / (aM * bM));
 		return angle;
+	}
+
+	Vector2 Negate() const
+	{
+		return *this * -1;
+	}
+
+	float* GetVal()
+	{
+		float val[2] = { x,y };
+		return val;
 	}
 };
 
@@ -332,5 +354,17 @@ struct Vector4
 	{
 		Vector4 d = *this - v2;
 		return d.mag();
+	}
+
+	Vector4 Negate() const
+	{
+		return *this * -1;
+	}
+
+
+	float* GetVal()
+	{
+		float val[4] = { x,y,z,w };
+		return val;
 	}
 };

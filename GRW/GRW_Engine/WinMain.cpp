@@ -261,6 +261,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     DEBUG("angle: " << ang);
     DEBUG(forward.prnt().c_str());
     //
+
     MSG msg = {};
     //App loop
     while (GetMessage(&msg, nullptr, 0, 0) > 0)
