@@ -2,6 +2,8 @@
 #include <cmath>
 #include <string>
 
+
+
 struct Vector3
 {
 	Vector3() { x = 0, y = 0, z = 0; }
@@ -299,6 +301,7 @@ struct Vector4
 		result.w = w * v2.w;
 		return result;
 	}
+
 	Vector4 operator/(float const& f) const
 	{
 		Vector4 result;
