@@ -101,6 +101,83 @@ struct Matrix4x4
 	
 	//static funcs
 	//get rotation matrix
+	Matrix4x4 GetRotationMatrix(Vector3 a)
+	{
+
+		/*
+		rotation around x axis:
+
+		{
+			{1,    0,     0, 0},
+			{0, cosX, -sinX, 0},
+			{0, sinX, cosX,  0},
+			{0,    0,    0,  0}
+		}
+		
+		rotation around y axis
+
+		{
+			{ cosY, 0, sinY, 0},
+			{    0, 1,    0, 0},
+			{-sinY, 0, cosY, 0},
+			{    0, 0,    0, 0}
+		}
+		
+		rotation around Z axis
+
+		{
+			{cosZ, -sinZ, 0, 0}
+			{sinZ,  cosZ, 0, 0} 
+			{   0,     0, 1, 0}
+			{   0,     0, 0, 0}
+		}
+		
+		Composed rotation matrix using ZXY order
+
+		ZX =
+		{
+			{cosZ, sinZcosX,  sinZsinX, 0}
+			{sinZ, cosZcosX, -cosZsinX, 0} 
+			{	0,	   sinX,	  cosX, 0} ----
+			{	0,		   0,        0, 0}
+		}
+
+		(ZX)Y =
+		{
+			{cosZcosY + -sinZsinXsinY, sinZcosX, cosZsinY + sinZsinXcosY, 0}
+			{sinZcosY + cosZsinXsinY, cosZcosX, sinZsinY - cosZsinXcosY, 0}
+			{			   -cosXsinY,      sinX,              cosXcosY, 0}
+			{                      0,         0,                    0, 0}
+		}
+
+		*/
+
+
+		float rMatrix[4][4] =
+		{
+			{cos(a.z) * cos(a.y) - sin(a.z) * sin(a.x) * sin(a.y) , sin(a.z) * cos(a.x), cos(a.z) * sin(a.y) + sin(a.z) * sin(a.x) * cos(a.y), 0},
+			{sin(a.x) * cos(a.y) + cos(a.z) * sin(a.x) * sin(a.y), cos(a.z) * cos(a.x), sin(a.z) * sin(a.y) - cos(a.z) * sin(a.x) * cos(a.y), 0},
+			{-1 * cos(a.x) * sin(a.y), sin(a.x), cos(a.x) * cos(a.y), 0},
+			{0, 0, 0, 0}
+		};
+		Matrix4x4 M(rMatrix);
+		return M;
+	}
+
+	//get scale matrix
+	Matrix4x4 GetScalingMatrix(Vector3 scale)
+	{
+		float rMatrix[4][4] =
+		{
+			{scale.x, 0, 0, 0},
+			{0, scale.y, 0, 0},
+			{0, 0, scale.z, 0},
+			{0, 0, 0, 0}
+		};
+		Matrix4x4 M(rMatrix);
+		return M;
+	}
+
 	//get identity
 	Matrix4x4 Identity()
 	{
@@ -115,5 +192,8 @@ struct Matrix4x4
 		
 		return M;
 	}
+
+
+
 	//get projection matrix
 };
