@@ -75,9 +75,15 @@ void Transform::UpdateMatrix()
 	Matrix4x4 S = Matrix4x4::GetScalingMatrix(scale);
 	Matrix4x4 R = Matrix4x4::GetScalingMatrix(rotation);
 	Matrix4x4 T = Matrix4x4::GetScalingMatrix(position);
-	if(parent != nullptr)
+	if (parent != nullptr)
+	{
 		ModelMatrix = S * R * T;
-	ModelMatrix = S * R * T * parent->GetModelMatrix();
+	}
+	else
+	{
+		ModelMatrix = S * R * T * parent->GetModelMatrix();
+	}
+
 }
 
 Vector3 Transform::TransformPoint(Vector3 pos)
