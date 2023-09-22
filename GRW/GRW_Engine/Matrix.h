@@ -73,6 +73,13 @@ struct Matrix4x4
 
 		return V;
 	}
+
+	//get index
+	float operator() (int y, int x) const
+	{
+		return val[y][x];
+	}
+
 	//operations
 
 	//get inverse
@@ -101,7 +108,7 @@ struct Matrix4x4
 	
 	//static funcs
 	//get rotation matrix
-	Matrix4x4 GetRotationMatrix(Vector3 a)
+	static Matrix4x4 GetRotationMatrix(Vector3 a)
 	{
 
 		/*
@@ -158,20 +165,48 @@ struct Matrix4x4
 			{cos(a.z) * cos(a.y) - sin(a.z) * sin(a.x) * sin(a.y) , sin(a.z) * cos(a.x), cos(a.z) * sin(a.y) + sin(a.z) * sin(a.x) * cos(a.y), 0},
 			{sin(a.x) * cos(a.y) + cos(a.z) * sin(a.x) * sin(a.y), cos(a.z) * cos(a.x), sin(a.z) * sin(a.y) - cos(a.z) * sin(a.x) * cos(a.y), 0},
 			{-1 * cos(a.x) * sin(a.y), sin(a.x), cos(a.x) * cos(a.y), 0},
-			{0, 0, 0, 0}
+			{0, 0, 0, 1}
 		};
 		Matrix4x4 M(rMatrix);
 		return M;
 	}
 
 	//get scale matrix
-	Matrix4x4 GetScalingMatrix(Vector3 scale)
+	static Matrix4x4 GetScalingMatrix(Vector3 scale)
 	{
 		float rMatrix[4][4] =
 		{
 			{scale.x, 0, 0, 0},
 			{0, scale.y, 0, 0},
 			{0, 0, scale.z, 0},
+			{0, 0, 0, 1}
+		};
+		Matrix4x4 M(rMatrix);
+		return M;
+	}
+
+	//get translation matrix
+	static Matrix4x4 GetTranslationMatrix(Vector3 pos)
+	{
+		float rMatrix[4][4] =
+		{
+			{0, 0, 0, pos.x},
+			{0, 0, 0, pos.y},
+			{0, 0, 0, pos.z},
+			{0, 0, 0, 1}
+		};
+		Matrix4x4 M(rMatrix);
+		return M;
+	}
+
+	//Get Projection Matrix
+	static Matrix4x4 GetProjectionMatrix()
+	{
+		float rMatrix[4][4] =
+		{
+			{0, 0, 0, 0},
+			{0, 0, 0, 0},
+			{0, 0, 0, 0},
 			{0, 0, 0, 0}
 		};
 		Matrix4x4 M(rMatrix);
@@ -179,7 +214,7 @@ struct Matrix4x4
 	}
 
 	//get identity
-	Matrix4x4 Identity()
+	static Matrix4x4 Identity()
 	{
 		float val[4][4] =
 		{

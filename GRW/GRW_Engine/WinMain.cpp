@@ -256,11 +256,16 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //TEST
     Vector3 forward = Vector3(0, 0, 1);
-    Vector3 right = Vector3(-1, 0, 0);
-    float ang = forward.Angle(right) * (180 / M_PI);
+    Vector3 right = Vector3(1, 0, 0);
+    
+    Vector3 added = forward + right;
+
+    float ang = forward.Angle(added) * (180 / M_PI);
     DEBUG("angle: " << ang);
-    DEBUG(forward.prnt().c_str());
+    DEBUG(added.prnt().c_str());
     //
+
+
 
     MSG msg = {};
     //App loop

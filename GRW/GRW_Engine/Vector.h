@@ -133,6 +133,38 @@ struct Vector3
 		float val[3] = { x,y,z };
 		return val;
 	}
+
+
+	static Vector3 zero()
+	{
+		return Vector3(0, 0, 0);
+	}
+
+	static Vector3 one()
+	{
+		return Vector3(1, 1, 1);
+	}
+
+	static Vector3 forward()
+	{
+		return Vector3(0, 0, 1);
+	}
+
+	static Vector3 right()
+	{
+		return Vector3(1, 0, 0);
+	}
+
+	static Vector3 up()
+	{
+		return Vector3(0, 1, 0);
+	}
+
+	Vector4 GetVec4(bool pos)
+	{
+		return Vector4(x, y, z, pos);
+	}
+
 };
 
 
@@ -369,5 +401,10 @@ struct Vector4
 	{
 		float val[4] = { x,y,z,w };
 		return val;
+	}
+
+	Vector3 GetVec3()
+	{
+		return Vector3(x, y, z);
 	}
 };
