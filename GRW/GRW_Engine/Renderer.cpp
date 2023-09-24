@@ -56,7 +56,7 @@ bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, 
 
     //Set and bind Rasterizer State
     rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
-    rasterizerDesc.CullMode = D3D11_CULL_NONE;
+    rasterizerDesc.CullMode = D3D11_CULL_BACK;
     rasterizerDesc.FrontCounterClockwise = true;
     rasterizerDesc.DepthBias = false;
     rasterizerDesc.DepthBiasClamp = 0;

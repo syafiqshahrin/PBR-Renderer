@@ -221,7 +221,7 @@ int Application::ApplicationUpdate()
     Transform cube;
     cube.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
     cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    cube.SetScale(Vector3(1.f, 1.f, 1.f));
+    cube.SetScale(Vector3(2.f, 2.f, 2.f));
 
 
     CamTes.UpdateMatrix();
