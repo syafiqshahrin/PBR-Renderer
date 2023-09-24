@@ -1,5 +1,12 @@
 
-float4 main() : SV_TARGET
+struct VSOutput
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float4 vPos : SV_POSITION;
+	float4 col : COLOR;
+};
+float4 main(VSOutput pIN) : SV_TARGET
+{
+	float4 color = pIN.col;
+	return color;
+	//return float4(1,0,0,1);
 }

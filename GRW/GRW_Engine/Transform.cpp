@@ -1,11 +1,19 @@
 #include "Transform.h"
-
+#include "Debug.h"
 Transform::Transform()
 {
-
+	position = Vector3::zero();
+	rotation = Vector3::zero();
+	scale = Vector3::one();
+	parent = nullptr;
 }
 
-Transform::Transform(Vector3 pos, Vector3 rot, Vector3 s, Transform *par = nullptr)
+Transform::Transform(Transform* par)
+{
+	parent = par;
+}
+
+Transform::Transform(Vector3 pos, Vector3 rot, Vector3 s, Transform *par)
 {
 	position = pos;
 	rotation = rot;
@@ -73,17 +81,26 @@ Matrix4x4 Transform::GetModelMatrix()
 void Transform::UpdateMatrix()
 {
 	Matrix4x4 S = Matrix4x4::GetScalingMatrix(scale);
-	Matrix4x4 R = Matrix4x4::GetScalingMatrix(rotation);
-	Matrix4x4 T = Matrix4x4::GetScalingMatrix(position);
-	if (parent != nullptr)
+	Matrix4x4 R = Matrix4x4::GetRotationMatrix(rotation);
+	Matrix4x4 T = Matrix4x4::GetTranslationMatrix(position);
+
+
+	if (parent == nullptr)
 	{
-		ModelMatrix = S * R * T;
+		ModelMatrix = T * (R * S);
 	}
 	else
 	{
 		ModelMatrix = S * R * T * parent->GetModelMatrix();
 	}
-
+	/*
+	float m[16];
+	ModelMatrix.GetMatrixFloatArray(m);
+	for (int i = 0; i < 4; i++)
+	{
+		DEBUG(m[(i * 4)] << "," <<  m[(i * 4) + 1] << "," << m[(i * 4) + 2] << "," << m[(i * 4) + 3]);
+	}
+	*/
 }
 
 Vector3 Transform::TransformPoint(Vector3 pos)

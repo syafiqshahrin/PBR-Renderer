@@ -6,6 +6,7 @@
 struct Transform
 {
 	Transform();
+	Transform(Transform* par);
 	Transform(Vector3 pos, Vector3 rot, Vector3 s, Transform * par = nullptr);
 
 	void SetPosition(Vector3 pos);

@@ -8,6 +8,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "Debug.h"
+#include "Transform.h"
+#include "Matrix.h"
+#include <chrono>
 
 //windows callback function for handling messages from OS
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wP, LPARAM lP)
@@ -143,30 +146,51 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     D3D11_INPUT_ELEMENT_DESC inLayoutDesc[]
     {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    gfxDevice->CreateInputLayout(inLayoutDesc, 1u, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
+    gfxDevice->CreateInputLayout(inLayoutDesc, 2, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
     gfxContext->IASetInputLayout(inputLayoutHandle.Get());
 
     //Create vertex buffer and Bind data to Input Assembler
     ////Dummy triangle mesh test data
     struct vertex
     {
-        vertex(float x, float y, float z)
+        vertex(float x, float y, float z, float r, float g, float b)
         {
             pos[0] = x;
             pos[1] = y;
             pos[2] = z;
+
+            col[0] = r;
+            col[1] = g;
+            col[2] = b;
+            //col[3] = a;
         }
         float pos[3] = {};
+        float col[3] = {};
     };
-
+    /*
     vertex meshData[] = {
-        {vertex(-0.5f, -0.5f, 0.0f)},
-        {vertex(0.0f, 0.5f, 0.0f)},
-        {vertex(0.5f, -0.5f, 0.0f)}
+        vertex(-0.5f, -0.5f, -0.0f, 1,0,0),
+        vertex(0.5f, -0.5f, -0.0f, 0,1,0),
+        vertex(-0.5f, 0.5f, -0.0f, 0,0,1),
+        vertex(0.5f, 0.5f, -0.0f, 1,1,0)
     };
+    */
+    
+    vertex meshData[] = {
+        vertex(-0.5f, -0.5f, -0.5f, 1,0,0), //0 - front bot left
+        vertex(0.5f, -0.5f, -0.5f, 0,1,0), //1 - front bot right
+        vertex(-0.5f, 0.5f, -0.5f, 0,0,1), //2 - front top left
+        vertex(0.5f, 0.5f, -0.5f, 1,1,0), //3 - front top right
+        vertex(-0.5f, -0.5f, 0.5f, 1,0,0), //4 - back bot left
+        vertex(0.5f, -0.5f, 0.5f, 0,1,0), //5 - back bot right
+        vertex(-0.5f, 0.5f, 0.5f, 0,0,1), //6 - back top left
+        vertex(0.5f, 0.5f, 0.5f, 1,1,0) //7 - back top right
+    };
+    
     ////
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertBuffer;
@@ -175,7 +199,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     verBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     verBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     verBufferDesc.ByteWidth = sizeof(meshData); //size of the whole array
-    verBufferDesc.StructureByteStride = sizeof(vertex); //stride of each vertex 
+    //verBufferDesc.StructureByteStride = sizeof(vertex); //stride of each vertex 
     verBufferDesc.CPUAccessFlags = 0u;
     verBufferDesc.MiscFlags = 0u;
 
@@ -199,9 +223,25 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //create index buffer and bind to input assembler
     Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 
+        
+    /*
     UINT meshIndicesData[]
     {
-        0, 1, 2
+        0, 1, 2, 2, 1, 3
+    };
+    
+    */
+    
+    UINT meshIndicesData[]
+    {
+        0, 1, 2, 
+        1, 3, 2, 
+        1, 5, 3, 
+        5, 7, 3, 
+        5, 4, 7, 
+        4, 6, 7, 
+        4, 2, 6, 
+        0, 2, 6
     };
 
     D3D11_BUFFER_DESC indBufferDesc;
@@ -229,20 +269,21 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     scissorRect.top = 0 + (height / 3);
     scissorRect.bottom = height - (height / 3);
 
-    gfxContext->RSSetScissorRects(1, &scissorRect);
+    //gfxContext->RSSetScissorRects(1, &scissorRect);
 
     //Set Rasterizer State
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
 
     D3D11_RASTERIZER_DESC rasterizerDesc;
-    rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-    rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+    //rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    rasterizerDesc.CullMode = D3D11_CULL_NONE;
     rasterizerDesc.FrontCounterClockwise = true;
     rasterizerDesc.DepthBias = false;
     rasterizerDesc.DepthBiasClamp = 0;
     rasterizerDesc.SlopeScaledDepthBias = 0;
     rasterizerDesc.DepthClipEnable = true;
-    rasterizerDesc.ScissorEnable = true;
+    rasterizerDesc.ScissorEnable = false;
     rasterizerDesc.MultisampleEnable = false;
     rasterizerDesc.AntialiasedLineEnable = false;
     
@@ -261,16 +302,74 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     Vector3 added = forward + right;
 
     float ang = forward.Angle(added) * (180 / M_PI);
-    DEBUG("angle: " << ang);
-    DEBUG(added.prnt().c_str());
+    //DEBUG("angle: " << ang);
+    //DEBUG(added.prnt().c_str());
     //
 
+    
+    //Camera test
+    Transform CamTes;
+    CamTes.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    Transform cube;
+    cube.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+    cube.SetScale(Vector3(1.2f, 1.2f, 1.2f));
+    
+
+    CamTes.UpdateMatrix();
+    cube.UpdateMatrix();
+
+
+
+    Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(width, height)) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+
+    MVP = MVP.Transpose();
+
+    ///cbuffer stuff
+    Microsoft::WRL::ComPtr<ID3D11Buffer> constBuffer;
+
+    struct Cbuffer
+    {
+        float MVP[16];
+    };
+
+    Cbuffer cbuffer;
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    for (int i = 0; i < 4; i++)
+    {
+        DEBUG(cbuffer.MVP[(i * 4)] << "," << cbuffer.MVP[(i * 4) + 1] << "," << cbuffer.MVP[(i * 4) + 2] << "," << cbuffer.MVP[(i * 4) + 3]);
+    }
+
+    D3D11_BUFFER_DESC cbDesc;
+    cbDesc.ByteWidth = sizeof(Cbuffer);
+    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbDesc.MiscFlags = 0;
+    cbDesc.StructureByteStride = 0;
+
+    D3D11_SUBRESOURCE_DATA data;
+    data.pSysMem = &cbuffer;
+    data.SysMemPitch = 0;
+    data.SysMemSlicePitch = 0;
+
+    hr = gfxDevice->CreateBuffer(&cbDesc, &data, &constBuffer);
+    if (FAILED(hr))
+    {
+        DEBUG("Failed to create cbuffer");
+    }
+
+    gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
+    ///
 
 
     MSG msg = {};
     //App loop
+    float deltaTime = 0;
     while (GetMessage(&msg, nullptr, 0, 0) > 0)
     {
+        std::chrono::steady_clock::time_point startTime = std::chrono::high_resolution_clock::now();
         //windows messaging stuff
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -278,9 +377,29 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         //render loop stuff
         gfxContext->ClearRenderTargetView(backBufferRenderView.Get(), clearColor);
         //draw triangle
+        Vector3 rot = cube.GetRotation();
+        rot.z += 5 * deltaTime;
+        DEBUG("Angle = " << rot.z);
+        cube.SetRotation(rot);
+        cube.UpdateMatrix();
+        Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(width, height)) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+        MVP = MVP.Transpose();
+        MVP.GetMatrixFloatArray(cbuffer.MVP);
+        for (int i = 0; i < 4; i++)
+        {
+            DEBUG(cbuffer.MVP[(i * 4)] << "," << cbuffer.MVP[(i * 4) + 1] << "," << cbuffer.MVP[(i * 4) + 2] << "," << cbuffer.MVP[(i * 4) + 3]);
+        }
+
+        D3D11_MAPPED_SUBRESOURCE mappedResource;
+        gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+
         gfxContext->DrawIndexed(sizeof(meshIndicesData) / sizeof(UINT), 0, 0);
 
         gfxSwapChain->Present(0, 0); //flip buffers and vsync?
+        std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+        deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count() / 1000.0f;
+        DEBUG("Time difference = " << deltaTime );
     }
 	return 0;
 }
