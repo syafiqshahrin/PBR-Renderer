@@ -1,71 +1,13 @@
-#include <Windows.h>
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <wrl.h>
-#include <iostream>
-#include <sstream>
-#include "Vector.h"
-#define _USE_MATH_DEFINES
-#include <math.h>
-#include "Debug.h"
-#include "Transform.h"
-#include "Matrix.h"
-#include <chrono>
+#include "Application.h"
 
-//windows callback function for handling messages from OS
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wP, LPARAM lP)
-{
-    switch (msg)
-    {
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
-        default:
-            return DefWindowProc(hWnd, msg, wP, lP);
-    }
 
-}
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    //create window class struct
-	WNDCLASSEX wndClass = { 0 };
+#pragma region OldCodeForRef
 
-    //window class name
-	const LPCWSTR pClassName = L"winApp";
-
-    float width = 1920;
-    float height = 1080;
-
-    //Populate window struct 
-	wndClass.cbSize = sizeof(WNDCLASSEX);
-	wndClass.style = CS_OWNDC;
-	//wndClass.lpfnWndProc = DefWindowProc;
-	wndClass.lpfnWndProc = WindowProc;
-	wndClass.cbClsExtra = 0;
-	wndClass.hInstance = hInstance;
-	wndClass.hIcon = nullptr;
-	wndClass.hCursor = nullptr;
-	wndClass.hbrBackground = nullptr;
-	wndClass.lpszMenuName = nullptr;
-	wndClass.lpszClassName = pClassName;
-	wndClass.hIconSm = nullptr;
-
-    //Register window class
-	RegisterClassEx(&wndClass);
-    //Create window and get the handle to window
-	HWND hWnd = CreateWindowEx(
-		0,
-		pClassName,
-		L"GRW Engine",
-		(WS_VISIBLE | WS_MINIMIZEBOX | WS_CAPTION | WS_BORDER | WS_SYSMENU),
-		200, 200,
-        1920, 1080,
-		nullptr, nullptr, hInstance, nullptr
-	);
-
-    //Show window
-	ShowWindow(hWnd, SW_SHOW);
+    /*
+    Window AppWIndow(L"GRW_Engine", 1920, 1080, hInstance);
 
     //Dx11
     D3D_FEATURE_LEVEL FeatureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -75,13 +17,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     DXGI_SWAP_CHAIN_DESC SwapChainDesc;
     ZeroMemory(&SwapChainDesc, sizeof(SwapChainDesc));
     SwapChainDesc.BufferCount = 1;
-    SwapChainDesc.BufferDesc.Width = width;
-    SwapChainDesc.BufferDesc.Height = height;
+    SwapChainDesc.BufferDesc.Width = AppWIndow.GetWidth();
+    SwapChainDesc.BufferDesc.Height = AppWIndow.GetHeight();
     SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
     SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
     SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    SwapChainDesc.OutputWindow = hWnd;
+    SwapChainDesc.OutputWindow = AppWIndow.GetWindHandle();
     SwapChainDesc.SampleDesc.Count = 1;
     SwapChainDesc.SampleDesc.Quality - 1;
     SwapChainDesc.Windowed = TRUE;
@@ -107,8 +49,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     gfxContext->OMSetRenderTargets(1, backBufferRenderView.GetAddressOf(), nullptr);
     //create viewport and set view port
     D3D11_VIEWPORT viewport;
-    viewport.Width = width;
-    viewport.Height = height;
+    viewport.Width = AppWIndow.GetWidth();
+    viewport.Height = AppWIndow.GetHeight();
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
     viewport.TopLeftX = 0.0f;
@@ -171,6 +113,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         float pos[3] = {};
         float col[3] = {};
     };
+    */
+
     /*
     vertex meshData[] = {
         vertex(-0.5f, -0.5f, -0.0f, 1,0,0),
@@ -179,7 +123,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         vertex(0.5f, 0.5f, -0.0f, 1,1,0)
     };
     */
-    
+    /*
     vertex meshData[] = {
         vertex(-0.5f, -0.5f, -0.5f, 1,0,0), //0 - front bot left
         vertex(0.5f, -0.5f, -0.5f, 0,1,0), //1 - front bot right
@@ -222,7 +166,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //create index buffer and bind to input assembler
     Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
-
+    */
         
     /*
     UINT meshIndicesData[]
@@ -231,7 +175,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     };
     
     */
-    
+    /*
     UINT meshIndicesData[]
     {
         0, 1, 2, 
@@ -259,7 +203,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //set primitive topology type
     gfxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    */
 
+    /*
     //Set scissor rect
     //optional functionality
     //scissor is used to do additionally clipping within the viewport region
@@ -268,9 +214,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     scissorRect.right = width - (width/3);
     scissorRect.top = 0 + (height / 3);
     scissorRect.bottom = height - (height / 3);
-
+    
     //gfxContext->RSSetScissorRects(1, &scissorRect);
+    */
 
+    /*
     //Set Rasterizer State
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
 
@@ -321,7 +269,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 
 
-    Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(width, height)) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+    Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWIndow.GetWidth(), AppWIndow.GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
 
     MVP = MVP.Transpose();
 
@@ -382,7 +330,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
         cube.UpdateMatrix();
-        Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(width, height)) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+        Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWIndow.GetWidth(), AppWIndow.GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(cbuffer.MVP);
         for (int i = 0; i < 4; i++)
@@ -402,6 +350,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         DEBUG("Time difference = " << deltaTime );
     }
 	return 0;
+    */
+#pragma endregion
+
+    Application App(L"GRW_Engine", 1920, 1080, hInstance);
+    return App.ApplicationUpdate();
 }
  
 

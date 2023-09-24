@@ -11,8 +11,8 @@ struct VSOutput
 };
 cbuffer Cbuffer : register(b0)
 {
+	float4 time;
 	matrix MVP;
-
 }
 VSOutput main( VSInput vIn)
 {

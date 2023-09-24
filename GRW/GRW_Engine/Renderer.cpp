@@ -2,32 +2,32 @@
 #include "Renderer.h"
 #include <iostream>
 
-Renderer::Renderer(HWND hWnd, float WindowWidth, float WindowHeight, bool Windowed)
+Renderer::Renderer(HWND hWnd, int WindowWidth, int WindowHeight, bool Windowed)
 {
     InitializeRenderer(hWnd, WindowWidth, WindowHeight, Windowed);
 }
 
-bool Renderer::InitializeRenderer(HWND hWnd, float WindowWidth, float WindowHeight, bool Windowed)
+bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, bool Windowed)
 {
     D3D_FEATURE_LEVEL FeatureLevel = D3D_FEATURE_LEVEL_11_0;
     D3D_FEATURE_LEVEL FeatureLevelSupported;
 
     //Fill out swapchain description struct
 
-    ZeroMemory(SwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
-    SwapChainDesc->BufferCount = 1;
-    SwapChainDesc->BufferDesc.Width = WindowWidth;
-    SwapChainDesc->BufferDesc.Height = WindowHeight;
-    SwapChainDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    SwapChainDesc->BufferDesc.RefreshRate.Numerator = 60;
-    SwapChainDesc->BufferDesc.RefreshRate.Denominator = 1;
-    SwapChainDesc->BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    SwapChainDesc->OutputWindow = hWnd;
-    SwapChainDesc->SampleDesc.Count = 1;
-    SwapChainDesc->SampleDesc.Quality - 1;
-    SwapChainDesc->Windowed = Windowed;
+    //ZeroMemory(SwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+    SwapChainDesc.BufferCount = 1;
+    SwapChainDesc.BufferDesc.Width = WindowWidth;
+    SwapChainDesc.BufferDesc.Height = WindowHeight;
+    SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+    SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+    SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    SwapChainDesc.OutputWindow = hWnd;
+    SwapChainDesc.SampleDesc.Count = 1;
+    SwapChainDesc.SampleDesc.Quality - 1;
+    SwapChainDesc.Windowed = Windowed;
 
-    hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &FeatureLevel, 1, D3D11_SDK_VERSION, SwapChainDesc, &gfxSwapChain, &gfxDevice, &FeatureLevelSupported, &gfxContext);
+    hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &FeatureLevel, 1, D3D11_SDK_VERSION, &SwapChainDesc, &gfxSwapChain, &gfxDevice, &FeatureLevelSupported, &gfxContext);
     if (FAILED(hr))
     {
         std::cout << "Failed to initialize dx11 device/swapchain" << std::endl;
@@ -44,29 +44,29 @@ bool Renderer::InitializeRenderer(HWND hWnd, float WindowWidth, float WindowHeig
     }
 
     //set and bind viewport
-    BaseViewport->Width = WindowWidth;
-    BaseViewport->Height = WindowHeight;
-    BaseViewport->MinDepth = 0.0f;
-    BaseViewport->MaxDepth = 1.0f;
-    BaseViewport->TopLeftX = 0.0f;
-    BaseViewport->TopLeftY = 0.0f;
+    BaseViewport.Width = WindowWidth;
+    BaseViewport.Height = WindowHeight;
+    BaseViewport.MinDepth = 0.0f;
+    BaseViewport.MaxDepth = 1.0f;
+    BaseViewport.TopLeftX = 0.0f;
+    BaseViewport.TopLeftY = 0.0f;
 
-    gfxContext->RSSetViewports(1, BaseViewport);
+    gfxContext->RSSetViewports(1, &BaseViewport);
 
 
     //Set and bind Rasterizer State
-    rasterizerDesc->FillMode = D3D11_FILL_SOLID;
-    rasterizerDesc->CullMode = D3D11_CULL_FRONT;
-    rasterizerDesc->FrontCounterClockwise = true;
-    rasterizerDesc->DepthBias = false;
-    rasterizerDesc->DepthBiasClamp = 0;
-    rasterizerDesc->SlopeScaledDepthBias = 0;
-    rasterizerDesc->DepthClipEnable = true;
-    rasterizerDesc->ScissorEnable = false;
-    rasterizerDesc->MultisampleEnable = false;
-    rasterizerDesc->AntialiasedLineEnable = false;
+    rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+    rasterizerDesc.CullMode = D3D11_CULL_NONE;
+    rasterizerDesc.FrontCounterClockwise = true;
+    rasterizerDesc.DepthBias = false;
+    rasterizerDesc.DepthBiasClamp = 0;
+    rasterizerDesc.SlopeScaledDepthBias = 0;
+    rasterizerDesc.DepthClipEnable = true;
+    rasterizerDesc.ScissorEnable = false;
+    rasterizerDesc.MultisampleEnable = false;
+    rasterizerDesc.AntialiasedLineEnable = false;
 
-    gfxDevice->CreateRasterizerState(rasterizerDesc, &rasterizerState);
+    gfxDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState);
     
     gfxContext->RSSetState(rasterizerState.Get());
 
@@ -110,50 +110,63 @@ void Renderer::SetPrimitiveRenderingMode(const PrimType primitive)
     gfxContext->IASetPrimitiveTopology(topology);
 }
 
+void Renderer::ClearBackbuffer()
+{
+    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    gfxContext->ClearRenderTargetView(BackBufferRTV.Get(), clearColor);
+}
+
+void Renderer::UpdateSwapchain()
+{
+    gfxSwapChain->Present(0,0);
+}
+
+
+
 bool Renderer::InitializeDepthStencilBuffer()
 {
     //Fill tex2d desc struct
     D3D11_TEXTURE2D_DESC backbufferDesc;
     backBufferTexResource->GetDesc(&backbufferDesc);
-    DepthStencilTexDesc->Width = backbufferDesc.Width;
-    DepthStencilTexDesc->Height = backbufferDesc.Height;
-    DepthStencilTexDesc->MipLevels = 1;
-    DepthStencilTexDesc->ArraySize = 1;
-    DepthStencilTexDesc->Format = DXGI_FORMAT_R32_TYPELESS;
-    DepthStencilTexDesc->SampleDesc.Count = 1;
-    DepthStencilTexDesc->SampleDesc.Quality = 0;
-    DepthStencilTexDesc->Usage = D3D11_USAGE_DEFAULT;
-    DepthStencilTexDesc->BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE; //for when we want to use the depth texture in a shader
-    DepthStencilTexDesc->CPUAccessFlags = 0;
-    DepthStencilTexDesc->MiscFlags = 0;
+    DepthStencilTexDesc.Width = backbufferDesc.Width;
+    DepthStencilTexDesc.Height = backbufferDesc.Height;
+    DepthStencilTexDesc.MipLevels = 1;
+    DepthStencilTexDesc.ArraySize = 1;
+    DepthStencilTexDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    DepthStencilTexDesc.SampleDesc.Count = 1;
+    DepthStencilTexDesc.SampleDesc.Quality = 0;
+    DepthStencilTexDesc.Usage = D3D11_USAGE_DEFAULT;
+    DepthStencilTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE; //for when we want to use the depth texture in a shader
+    DepthStencilTexDesc.CPUAccessFlags = 0;
+    DepthStencilTexDesc.MiscFlags = 0;
     //create texture2D resource device->CreateTexture2D()
-    hr = gfxDevice->CreateTexture2D(DepthStencilTexDesc, nullptr, &DepthStencilTexResource);
+    hr = gfxDevice->CreateTexture2D(&DepthStencilTexDesc, nullptr, &DepthStencilTexResource);
     if (FAILED(hr))
     {
         std::cout << "Creating Depth Stencil texture resource failed";
         return false;
     }
     //Fill depth stencil desc struct
-    DepthStencilDesc->DepthEnable = true;
-    DepthStencilDesc->DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    DepthStencilDesc->DepthFunc = D3D11_COMPARISON_LESS;
-
-    DepthStencilDesc->StencilEnable = true;
-    DepthStencilDesc->StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-    DepthStencilDesc->StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-
-    DepthStencilDesc->FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    DepthStencilDesc->FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    DepthStencilDesc->FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    DepthStencilDesc->FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-    DepthStencilDesc->BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    DepthStencilDesc->BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    DepthStencilDesc->BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    DepthStencilDesc->BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    DepthStencilDesc.DepthEnable = true;
+    DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+                    
+    DepthStencilDesc.StencilEnable = true;
+    DepthStencilDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+    DepthStencilDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+                    
+    DepthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    DepthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+                    
+    DepthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    DepthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
     //Create depth stencil state resource device->CreateDepthStencilState()
-    hr = gfxDevice->CreateDepthStencilState(DepthStencilDesc, &DepthStencilState);
+    hr = gfxDevice->CreateDepthStencilState(&DepthStencilDesc, &DepthStencilState);
     if (FAILED(hr))
     {
         std::cout << "Creating Depth Stencil state failed";
@@ -162,11 +175,11 @@ bool Renderer::InitializeDepthStencilBuffer()
     //Bind depth stencil state device->OMSetDepthStencilState()
     gfxContext->OMSetDepthStencilState(DepthStencilState.Get(), 1);
     //Fill depth stencil view desc struct
-    DepthStencilViewDesc->Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-    DepthStencilViewDesc->ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    DepthStencilViewDesc->Texture2D.MipSlice = 0;
+    DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+    DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    DepthStencilViewDesc.Texture2D.MipSlice = 0;
     //create depth stencil view resource device->CreateDepthStencilView()
-    hr = gfxDevice->CreateDepthStencilView(DepthStencilTexResource.Get(), DepthStencilViewDesc, &DepthStencilView);
+    hr = gfxDevice->CreateDepthStencilView(DepthStencilTexResource.Get(), &DepthStencilViewDesc, &DepthStencilView);
     if (FAILED(hr))
     {
         std::cout << "Creating Depth Stencil View failed";
