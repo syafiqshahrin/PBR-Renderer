@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include <fstream>
 #include <string>
-
+#include <bitset>
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -88,20 +88,113 @@ int Application::ApplicationUpdate()
 
   //Vert Shader
 
-    std::ifstream f("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    std::string strMap = { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" };
+
+    std::map<char, int> base64Map;
+
+    for (int i = 0; i < 64; i++)
+    {
+        base64Map.insert({ strMap[i], i });
+    }
+
+    std::ifstream f("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
     nlohmann::json dataJson = nlohmann::json::parse(f);
 
-    std::string s = dataJson["buffers"][0]["uri"];
-    std::byte bytes[4];
-    bytes[0] = (std::byte)s.c_str()[37];
-    bytes[1] = (std::byte)s.c_str()[38];
-    bytes[2] = (std::byte)s.c_str()[39];
-    bytes[3] = (std::byte)s.c_str()[40];
-    //std::memcpy(bytes, s.c_str(), 4);
-    float testFloat;
-    std::memcpy(&testFloat, bytes, 4);
-    //DEBUG(s.c_str()[36] << "," << s.c_str()[37]);
-    DEBUG(testFloat);
+    std::string uri = dataJson["buffers"][0]["uri"];
+
+    //for every 4 chars in uri
+        //create an int store and set it to 0
+        //for j = 0, j < 4, j++
+            //int temp = map index for i+j
+            //store = store OR temp
+            //store = store bitshift left by 6 
+        //retrieve byte from store and add it to byte array
+            //bit shift store to the right by 8
+    
+    //stores 3 bytes
+    int store = 0;
+
+    int t = base64Map[uri[37]];
+    //or index and then left shift by 6
+    store = store | t;
+    store = store << 6;
+
+    t = base64Map[uri[38]];
+
+    store = store | t;
+    store = store << 6;
+
+    t = base64Map[uri[39]];
+
+    store = store | t;
+    store = store << 6;
+
+    t = base64Map[uri[40]];
+
+    store = store | t;
+
+    //extract byte from int store
+    char c3 = store & 0xFF;
+    store = store >> 8;
+    char c2 = store & 0xFF;
+    store = store >> 8;
+    char c1 = store & 0xFF;
+
+
+    store = 0;
+
+    t = base64Map[uri[41]];
+
+    store = store | t;
+    store = store << 6;
+
+    t = base64Map[uri[42]];
+
+    store = store | t;
+    store = store << 6;
+
+    t = base64Map[uri[43]];
+
+    store = store | t;
+    store = store << 6;
+
+    t = base64Map[uri[44]];
+
+    store = store | t;
+
+    char c6 = store & 0xFF;
+    store = store >> 8;
+    char c5 = store & 0xFF;
+    store = store >> 8;
+    char c4 = store & 0xFF;
+
+
+
+
+
+    //char c = t;
+
+
+    std::bitset<8> x(c1);
+    std::bitset<8> y(c2);
+    std::bitset<8> z(c3);
+    std::bitset<8> a(c4);
+
+    std::byte bytesarray[4] = { (std::byte)c1, (std::byte)c2, (std::byte)c3, (std::byte)c4 };
+    float test;
+    std::memcpy(&test, bytesarray, sizeof(float));
+    /*
+    for (int i = 37; i < uri.size(); i+4)
+    {
+        int t = base64Map[uri[i]];
+    }
+    */
+
+    DEBUG(x);
+    DEBUG(y);
+    DEBUG(z);
+    DEBUG(a);
+    DEBUG("float:" << test);
 
     HRESULT hr;
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
@@ -267,7 +360,6 @@ int Application::ApplicationUpdate()
     CamTes.SetPosition(Vector3(5.0f,5.0f, 0.0f));
     OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
     
-    float test[16];
 
     Transform cube;
     cube.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
