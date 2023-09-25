@@ -11,6 +11,11 @@
 #include "Matrix.h"
 #include <chrono>
 #include <comdef.h>
+#include "Camera.h"
+#include "json.hpp"
+#include <fstream>
+#include <string>
+
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -27,8 +32,50 @@ Application::~Application()
 void Application::StartApplication()
 {
 	//initialise resources and other stuff here
+        //create and initialise transforms array (keeps track of all transforms)
+        //create and initialise vertex shader array
+        //create and initialise pixel shader array
+        //    
+        //Create meshes
+            //Create vertex buffers
+            //Create index buffers
+        //Create Materials 
+            //Create Shaders
+                //Load shader
+                    //Load shader from path and store in dx11 blob
+                    //Create dx11 vertex shader object from blob
+                    //Create Input layouts
+                    //Create per material constant buffer 
+        //Create Components
+            //Create MeshRenderer component
+                //Assign mesh and material    
+        //Create GameObjects
+            //Attach components
+                //Attach MeshRenderer component
 
-	//Update Application
+    
+    //Gameplay Loop
+    //Update All transforms matrix
+    //Frustum culling
+    //Sort mesh renderers into arrays by material 
+    //Render Loop
+        //Update per frame constant buffer (view matrix, projection matrix, time) 
+        //Bind per frame constnat buffer (binding 0)
+        //Opaque objects   
+            //For each material
+                    //Bind Vertex Buffer
+                    //Bind Index Buffer
+                    //Bind Vertex Shader
+                    //Bind Input layout
+                    //Bind Pixel Shader
+                    //Update per material constant buffer (binding 1)
+                    //Bind Constant Buffer
+                    //For each object
+                        //Calculate MVP
+                        //Update per object constant buffer 
+                        //Bind per object constant buffer (binding 2)
+                        //Draw()
+
 }
 
 int Application::ApplicationUpdate()
@@ -40,6 +87,21 @@ int Application::ApplicationUpdate()
   //LoadedShaderCollection Class - has a dictionary for both vertex and shader dx11 resource, key is path and resource is value
 
   //Vert Shader
+
+    std::ifstream f("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    nlohmann::json dataJson = nlohmann::json::parse(f);
+
+    std::string s = dataJson["buffers"][0]["uri"];
+    std::byte bytes[4];
+    bytes[0] = (std::byte)s.c_str()[37];
+    bytes[1] = (std::byte)s.c_str()[38];
+    bytes[2] = (std::byte)s.c_str()[39];
+    bytes[3] = (std::byte)s.c_str()[40];
+    //std::memcpy(bytes, s.c_str(), 4);
+    float testFloat;
+    std::memcpy(&testFloat, bytes, 4);
+    //DEBUG(s.c_str()[36] << "," << s.c_str()[37]);
+    DEBUG(testFloat);
 
     HRESULT hr;
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
@@ -89,14 +151,7 @@ int Application::ApplicationUpdate()
         float pos[3] = {};
         float col[3] = {};
     };
-    /*
-    vertex meshData[] = {
-        vertex(-0.5f, -0.5f, -0.0f, 1,0,0),
-        vertex(0.5f, -0.5f, -0.0f, 0,1,0),
-        vertex(-0.5f, 0.5f, -0.0f, 0,0,1),
-        vertex(0.5f, 0.5f, -0.0f, 1,1,0)
-    };
-    */
+  
 
     vertex meshData[] = {
         vertex(-0.5f, -0.5f, -0.5f, 1,0,0), //0 - front bot left
@@ -141,14 +196,6 @@ int Application::ApplicationUpdate()
     //create index buffer and bind to input assembler
     Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 
-
-    /*
-    UINT meshIndicesData[]
-    {
-        0, 1, 2, 2, 1, 3
-    };
-
-    */
 
     UINT meshIndicesData[]
     {
@@ -217,19 +264,18 @@ int Application::ApplicationUpdate()
 
     //Camera test
     Transform CamTes;
-    CamTes.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    CamTes.SetPosition(Vector3(5.0f,5.0f, 0.0f));
+    OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
+    
+    float test[16];
+
     Transform cube;
     cube.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
     cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
     cube.SetScale(Vector3(2.f, 2.f, 2.f));
-
-
-    CamTes.UpdateMatrix();
     cube.UpdateMatrix();
 
-
-
-    Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+    Matrix4x4 MVP = cam.GetCameraProjectionMatrix() * (cam.GetCameraViewMatrix() * cube.GetModelMatrix());
 
     MVP = MVP.Transpose();
 
@@ -280,28 +326,24 @@ int Application::ApplicationUpdate()
 
     //App loop
     float deltaTime = 0;
-    while (true)
+    while (AppWindow->ProcessMessages() != -1)
     {
         std::chrono::steady_clock::time_point startTime = std::chrono::high_resolution_clock::now();
-        if (AppWindow->ProcessMessages() == -1)
-        {
-            return 0;
-        }
-
-
+        
         //render loop stuff
         //draw triangle
         Vector3 rot = cube.GetRotation();
         rot.z += 0.1f * deltaTime;
         rot.x += 0.1f * deltaTime;
         rot.y += 0.1f * deltaTime;
-        DEBUG("Angle = " << rot.z);
+        //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
         cube.UpdateMatrix();
         Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(cbuffer.MVP);
         cbuffer.time.x += deltaTime;
+
         /*
         for (int i = 0; i < 4; i++)
         {
@@ -313,6 +355,7 @@ int Application::ApplicationUpdate()
         D3D11_MAPPED_SUBRESOURCE mappedResource;
         AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
         memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+        AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
 
         AppRenderer->ClearBackbuffer();
         AppRenderer->gfxContext->DrawIndexed(sizeof(meshIndicesData) / sizeof(UINT), 0, 0);
@@ -320,7 +363,7 @@ int Application::ApplicationUpdate()
 
         std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
         deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count() / 1000.0f;
-        DEBUG("Time difference = " << deltaTime);
+        //DEBUG("Time difference = " << deltaTime);
     }
     return 0;
 }
