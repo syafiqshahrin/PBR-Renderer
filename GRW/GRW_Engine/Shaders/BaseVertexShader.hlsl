@@ -17,9 +17,9 @@ cbuffer Cbuffer : register(b0)
 VSOutput main( VSInput vIn)
 {
 	VSOutput pixOut;
-	float3 p = vIn.vPos + normalize(vIn.vPos) * (sin(time.x * 0.001));
-	float4 p4 = float4(p,1);
-	
+	//float3 p = vIn.vPos + normalize(vIn.vPos) * (sin(time.x * 0.001));
+	//float4 p4 = float4(p,1);
+	float4 p4 = float4(vIn.vPos, 1);
 	pixOut.vPos = mul(MVP, p4);
 	pixOut.col = vIn.vCol;
 	return pixOut;

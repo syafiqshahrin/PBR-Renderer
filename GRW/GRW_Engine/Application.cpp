@@ -16,6 +16,7 @@
 #include <fstream>
 #include <string>
 #include <bitset>
+#include "GLTFMeshLoader.h"
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -87,7 +88,7 @@ int Application::ApplicationUpdate()
   //LoadedShaderCollection Class - has a dictionary for both vertex and shader dx11 resource, key is path and resource is value
 
   //Vert Shader
-
+    /*
     std::string strMap = { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" };
 
     std::map<char, int> base64Map;
@@ -97,7 +98,8 @@ int Application::ApplicationUpdate()
         base64Map.insert({ strMap[i], i });
     }
 
-    std::ifstream f("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    //std::ifstream f("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    std::ifstream f("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
     nlohmann::json dataJson = nlohmann::json::parse(f);
 
     std::string uri = dataJson["buffers"][0]["uri"];
@@ -168,13 +170,6 @@ int Application::ApplicationUpdate()
     store = store >> 8;
     char c4 = store & 0xFF;
 
-
-
-
-
-    //char c = t;
-
-
     std::bitset<8> x(c1);
     std::bitset<8> y(c2);
     std::bitset<8> z(c3);
@@ -183,18 +178,42 @@ int Application::ApplicationUpdate()
     std::byte bytesarray[4] = { (std::byte)c1, (std::byte)c2, (std::byte)c3, (std::byte)c4 };
     float test;
     std::memcpy(&test, bytesarray, sizeof(float));
-    /*
-    for (int i = 37; i < uri.size(); i+4)
-    {
-        int t = base64Map[uri[i]];
-    }
-    */
 
     DEBUG(x);
     DEBUG(y);
     DEBUG(z);
     DEBUG(a);
     DEBUG("float:" << test);
+    */
+    
+    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+
+    std::vector<Vector3> posArray;
+    meshLoader.GetVertexPositions(posArray);
+
+    DEBUG("positions: " << posArray.size());
+
+    /*
+    for (Vector3 v : posArray)
+    {
+        DEBUG(v.prnt().c_str());
+    }
+    */
+
+    std::vector<unsigned int> indArray;
+    meshLoader.GetIndices(0, indArray);
+    
+
+    
+    for (unsigned int ind : indArray)
+    {
+        DEBUG(ind);
+    }
+    
+
+    
+
+
 
     HRESULT hr;
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
@@ -232,20 +251,29 @@ int Application::ApplicationUpdate()
     {
         vertex(float x, float y, float z, float r, float g, float b)
         {
+            
             pos[0] = x;
             pos[1] = y;
             pos[2] = z;
+            
 
             col[0] = r;
             col[1] = g;
             col[2] = b;
             //col[3] = a;
         }
+        //Vector3 p;
         float pos[3] = {};
         float col[3] = {};
     };
-  
 
+    std::vector<vertex> meshData;
+    for (int i = 0; i < posArray.size(); i++)
+    {
+        meshData.push_back(vertex(posArray[i].x, posArray[i].y, posArray[i].z, 0, 1, 0));
+    }
+  
+    /*
     vertex meshData[] = {
         vertex(-0.5f, -0.5f, -0.5f, 1,0,0), //0 - front bot left
         vertex(0.5f, -0.5f, -0.5f, 0,1,0), //1 - front bot right
@@ -256,7 +284,7 @@ int Application::ApplicationUpdate()
         vertex(-0.5f, 0.5f, 0.5f, 0,0,1), //6 - back top left
         vertex(0.5f, 0.5f, 0.5f, 1,1,0) //7 - back top right
     };
-
+    */
     ////
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertBuffer;
@@ -264,20 +292,22 @@ int Application::ApplicationUpdate()
     D3D11_BUFFER_DESC verBufferDesc;
     verBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     verBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    verBufferDesc.ByteWidth = sizeof(meshData); //size of the whole array
+    verBufferDesc.ByteWidth = sizeof(vertex) * meshData.size(); //size of the whole array
     //verBufferDesc.StructureByteStride = sizeof(vertex); //stride of each vertex 
     verBufferDesc.CPUAccessFlags = 0u;
     verBufferDesc.MiscFlags = 0u;
 
     D3D11_SUBRESOURCE_DATA srd;
-    srd.pSysMem = meshData;
+    srd.pSysMem = meshData.data();
 
     hr = AppRenderer->gfxDevice->CreateBuffer(&verBufferDesc, &srd, &vertBuffer);
     if (FAILED(hr))
     {
-        std::cout << "Failed creatiing buffer" << std::endl;
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creatiing vertex buffer" << errorText);
 
-        return -1;
+        //return -1;
     }
 
 
@@ -310,12 +340,12 @@ int Application::ApplicationUpdate()
     D3D11_BUFFER_DESC indBufferDesc;
     indBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     indBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indBufferDesc.ByteWidth = sizeof(meshIndicesData); //size of the whole array
-    indBufferDesc.StructureByteStride = sizeof(UINT); //stride of each vertex 
+    indBufferDesc.ByteWidth = sizeof(unsigned int) * indArray.size(); //size of the whole array
+    //indBufferDesc.StructureByteStride = sizeof(UINT); //stride of each vertex 
     indBufferDesc.CPUAccessFlags = 0u;
     indBufferDesc.MiscFlags = 0u;
 
-    srd.pSysMem = meshIndicesData;
+    srd.pSysMem = indArray.data();
 
     AppRenderer->gfxDevice->CreateBuffer(&indBufferDesc, &srd, &indexBuffer);
     AppRenderer->gfxContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -384,10 +414,12 @@ int Application::ApplicationUpdate()
     cbuffer.time.x = 0;
     MVP.GetMatrixFloatArray(cbuffer.MVP);
 
+    /*
     for (int i = 0; i < 4; i++)
     {
         DEBUG(cbuffer.MVP[(i * 4)] << "," << cbuffer.MVP[(i * 4) + 1] << "," << cbuffer.MVP[(i * 4) + 2] << "," << cbuffer.MVP[(i * 4) + 3]);
     }
+    */
 
     D3D11_BUFFER_DESC cbDesc;
     cbDesc.ByteWidth = sizeof(Cbuffer);
