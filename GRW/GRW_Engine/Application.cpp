@@ -186,7 +186,8 @@ int Application::ApplicationUpdate()
     DEBUG("float:" << test);
     */
     
-    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -202,14 +203,14 @@ int Application::ApplicationUpdate()
 
     std::vector<unsigned int> indArray;
     meshLoader.GetIndices(0, indArray);
+
+    std::vector<Vector3> normArray;
+    meshLoader.GetNormals(0, normArray);
+
+    std::vector<Vector2> uvArray;
+    meshLoader.GetUVs(0, uvArray);
     
 
-    
-    for (unsigned int ind : indArray)
-    {
-        DEBUG(ind);
-    }
-    
 
     
 
@@ -239,23 +240,39 @@ int Application::ApplicationUpdate()
     D3D11_INPUT_ELEMENT_DESC inLayoutDesc[]
     {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    AppRenderer->gfxDevice->CreateInputLayout(inLayoutDesc, 2, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
+    hr = AppRenderer->gfxDevice->CreateInputLayout(inLayoutDesc, 4, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creatiing input layout" << errorText);
+
+        //return -1;
+    }
     AppRenderer->gfxContext->IASetInputLayout(inputLayoutHandle.Get());
 
     //Create vertex buffer and Bind data to Input Assembler
     ////Dummy triangle mesh test data
     struct vertex
     {
-        vertex(float x, float y, float z, float r, float g, float b)
+        vertex(Vector3 p, Vector3 n, Vector2 uv, float r, float g, float b)
         {
             
-            pos[0] = x;
-            pos[1] = y;
-            pos[2] = z;
+            pos[0] = p.x;
+            pos[1] = p.y;
+            pos[2] = p.z;
             
+            norm[0] = n.x;
+            norm[1] = n.y;
+            norm[2] = n.z;
+
+            texc[0] = uv.x;
+            texc[1] = uv.y;
 
             col[0] = r;
             col[1] = g;
@@ -264,13 +281,15 @@ int Application::ApplicationUpdate()
         }
         //Vector3 p;
         float pos[3] = {};
+        float norm[3] = {};
+        float texc[2] = {};
         float col[3] = {};
     };
 
     std::vector<vertex> meshData;
     for (int i = 0; i < posArray.size(); i++)
     {
-        meshData.push_back(vertex(posArray[i].x, posArray[i].y, posArray[i].z, 0, 1, 0));
+        meshData.push_back(vertex(posArray[i], normArray[i], uvArray[i], 0, 1, 0));
     }
   
     /*
@@ -351,7 +370,7 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
     //set primitive topology type
-    AppRenderer->gfxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    AppRenderer->gfxContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     /*
     //Set scissor rect
@@ -387,7 +406,7 @@ int Application::ApplicationUpdate()
 
     //Camera test
     Transform CamTes;
-    CamTes.SetPosition(Vector3(5.0f,5.0f, 0.0f));
+    CamTes.SetPosition(Vector3(0.0f,0.0f, 0.0f));
     OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
     
 
@@ -457,8 +476,8 @@ int Application::ApplicationUpdate()
         //render loop stuff
         //draw triangle
         Vector3 rot = cube.GetRotation();
-        rot.z += 0.1f * deltaTime;
-        rot.x += 0.1f * deltaTime;
+        //rot.z += 0.1f * deltaTime;
+        //rot.x += 0.1f * deltaTime;
         rot.y += 0.1f * deltaTime;
         //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
@@ -482,7 +501,7 @@ int Application::ApplicationUpdate()
         AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
 
         AppRenderer->ClearBackbuffer();
-        AppRenderer->gfxContext->DrawIndexed(sizeof(meshIndicesData) / sizeof(UINT), 0, 0);
+        AppRenderer->gfxContext->DrawIndexed(indArray.size() , 0, 0);
         AppRenderer->UpdateSwapchain();
 
         std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();

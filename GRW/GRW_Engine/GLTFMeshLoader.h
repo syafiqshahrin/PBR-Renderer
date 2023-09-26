@@ -16,6 +16,12 @@ struct GLTFMeshInfo
 	std::vector<int> IndStartOffset;
 	std::vector<int> IndByteLength;
 
+	std::vector<int> NormalStartOffset;
+	std::vector<int> NormalByteLength;
+
+	std::vector<int> UVStartOffset;
+	std::vector<int> UVByteLength;
+
 };
 
 class GLTFMeshLoader
@@ -26,6 +32,8 @@ public:
 
 	void GetVertexPositions(std::vector<Vector3> & vPositions);
 	void GetIndices(int submeshIndex, std::vector<unsigned int>& indices);
+	void GetNormals(int submeshIndex, std::vector<Vector3>& normals);
+	void GetUVs(int submeshIndex, std::vector<Vector2>& uvs);
 private:
 	void LoadJSonFile();
 	void DecodeMeshData();
@@ -36,7 +44,6 @@ private:
 	std::string MeshEncodedData;
 	std::vector<std::byte> MeshDecodedData;
 	const int StartIndex = 37;
-	//int MeshBufferMaxByteLength;
 
 	GLTFMeshInfo MeshInfo;
 };
