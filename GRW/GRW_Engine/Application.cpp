@@ -17,6 +17,9 @@
 #include <string>
 #include <bitset>
 #include "GLTFMeshLoader.h"
+#include "IMGUI/imgui.h"
+#include "IMGUI/imgui_impl_win32.h"
+#include "IMGUI/imgui_impl_dx11.h"
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -81,113 +84,24 @@ void Application::StartApplication()
 
 int Application::ApplicationUpdate()
 {
-    //load shader file onto gpu? Only needs to do this once on scene load
-  //Bind shader to context - do this everytime we need to change shaders
 
-  //Shader class - stores path, has shaderID for both vertex and pixel shader, dictionaries for shader data (one dictionary for each type)
-  //LoadedShaderCollection Class - has a dictionary for both vertex and shader dx11 resource, key is path and resource is value
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-  //Vert Shader
-    /*
-    std::string strMap = { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" };
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
 
-    std::map<char, int> base64Map;
-
-    for (int i = 0; i < 64; i++)
-    {
-        base64Map.insert({ strMap[i], i });
-    }
-
-    //std::ifstream f("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
-    std::ifstream f("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    nlohmann::json dataJson = nlohmann::json::parse(f);
-
-    std::string uri = dataJson["buffers"][0]["uri"];
-
-    //for every 4 chars in uri
-        //create an int store and set it to 0
-        //for j = 0, j < 4, j++
-            //int temp = map index for i+j
-            //store = store OR temp
-            //store = store bitshift left by 6 
-        //retrieve byte from store and add it to byte array
-            //bit shift store to the right by 8
+    // Setup Platform/Renderer backends
+    ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
+    ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
     
-    //stores 3 bytes
-    int store = 0;
-
-    int t = base64Map[uri[37]];
-    //or index and then left shift by 6
-    store = store | t;
-    store = store << 6;
-
-    t = base64Map[uri[38]];
-
-    store = store | t;
-    store = store << 6;
-
-    t = base64Map[uri[39]];
-
-    store = store | t;
-    store = store << 6;
-
-    t = base64Map[uri[40]];
-
-    store = store | t;
-
-    //extract byte from int store
-    char c3 = store & 0xFF;
-    store = store >> 8;
-    char c2 = store & 0xFF;
-    store = store >> 8;
-    char c1 = store & 0xFF;
-
-
-    store = 0;
-
-    t = base64Map[uri[41]];
-
-    store = store | t;
-    store = store << 6;
-
-    t = base64Map[uri[42]];
-
-    store = store | t;
-    store = store << 6;
-
-    t = base64Map[uri[43]];
-
-    store = store | t;
-    store = store << 6;
-
-    t = base64Map[uri[44]];
-
-    store = store | t;
-
-    char c6 = store & 0xFF;
-    store = store >> 8;
-    char c5 = store & 0xFF;
-    store = store >> 8;
-    char c4 = store & 0xFF;
-
-    std::bitset<8> x(c1);
-    std::bitset<8> y(c2);
-    std::bitset<8> z(c3);
-    std::bitset<8> a(c4);
-
-    std::byte bytesarray[4] = { (std::byte)c1, (std::byte)c2, (std::byte)c3, (std::byte)c4 };
-    float test;
-    std::memcpy(&test, bytesarray, sizeof(float));
-
-    DEBUG(x);
-    DEBUG(y);
-    DEBUG(z);
-    DEBUG(a);
-    DEBUG("float:" << test);
-    */
-    
-    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -408,15 +322,16 @@ int Application::ApplicationUpdate()
     Transform CamTes;
     CamTes.SetPosition(Vector3(0.0f,0.0f, 0.0f));
     OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
+    PerspectiveCamera pCam(CamTes, 90, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
     
 
     Transform cube;
-    cube.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
+    cube.SetPosition(Vector3(-8.0f, 0.0f, 20.0f));
     cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    cube.SetScale(Vector3(2.f, 2.f, 2.f));
+    cube.SetScale(Vector3(1.f, 1.f, 1.f));
     cube.UpdateMatrix();
 
-    Matrix4x4 MVP = cam.GetCameraProjectionMatrix() * (cam.GetCameraViewMatrix() * cube.GetModelMatrix());
+    Matrix4x4 MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
 
     MVP = MVP.Transpose();
 
@@ -465,25 +380,29 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
     AppRenderer->gfxContext->PSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
 
-    float AspectRatio = (float)AppWindow->GetHeight() / (float)AppWindow->GetWidth();
+
+
 
     //App loop
     float deltaTime = 0;
-    while (AppWindow->ProcessMessages() != -1)
+    while (true)
     {
         std::chrono::steady_clock::time_point startTime = std::chrono::high_resolution_clock::now();
-        
+        if (AppWindow->ProcessMessages() == -1)
+        {
+            break;
+        }
         //render loop stuff
         //draw triangle
         Vector3 rot = cube.GetRotation();
-        rot.z += 0.1f * deltaTime;
-        rot.x += 0.2f * deltaTime;
+        //rot.z += 0.1f * deltaTime;
+        //rot.x += 0.2f * deltaTime;
         rot.y += 0.1f * deltaTime;
         //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
         cube.UpdateMatrix();
         //Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
-        Matrix4x4 MVP = Matrix4x4::GetPerspectiveProjectionMatrix( 60.0f, 1.0f, 1000.0f,AspectRatio) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+        MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(cbuffer.MVP);
         cbuffer.time.x += deltaTime;
@@ -503,7 +422,38 @@ int Application::ApplicationUpdate()
 
         AppRenderer->ClearBackbuffer();
         AppRenderer->gfxContext->DrawIndexed(indArray.size() , 0, 0);
+        //AppRenderer->UpdateSwapchain();
+
+
+
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+        {
+            static float f = 0.0f;
+
+            Vector3 pos = cube.GetPosition();
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            //ImGui::Checkbox("Another Window", &show_another_window);
+
+            ImGui::SliderFloat3("Position", &pos.x, pos.y, pos.z);            // Edit 1 float using a slider from 0.0f to 1.0f
+            //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            cube.SetPosition(pos);
+            ImGui::SameLine();
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+        }
+       // AppRenderer->ClearBackbuffer();
+        ImGui::Render();
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
         AppRenderer->UpdateSwapchain();
+
 
         std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
         deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count() / 1000.0f;

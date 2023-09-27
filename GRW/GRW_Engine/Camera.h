@@ -29,3 +29,16 @@ private:
 	Vector3 MaxBoundary;
 	Matrix4x4 ProjectionMatrix;
 };
+
+class PerspectiveCamera : public Camera
+{
+public:
+	PerspectiveCamera(Transform& tform, float f, float nPlane, float fPlane, Vector2 sDimensions);
+	Matrix4x4 GetCameraProjectionMatrix() override;
+private:
+	float NearPlane;
+	float FarPlane;
+	float fov;
+	Vector2 screenDimension;
+	Matrix4x4 ProjectionMatrix;
+};

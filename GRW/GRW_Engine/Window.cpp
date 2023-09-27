@@ -1,5 +1,8 @@
 #include "Window.h"
 
+#include "IMGUI/imgui.h"
+#include "IMGUI/imgui_impl_win32.h"
+#include "IMGUI/imgui_impl_dx11.h"
 
 
 Window::Window(LPCWSTR WinTitle, int w, int h, HINSTANCE hInstance)
@@ -84,8 +87,12 @@ void Window::InitialiseWindow()
 	ShowWindow(hWnd, SW_SHOW);
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT msg, WPARAM wP, LPARAM lP)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wP, lP))
+		return true;
 	switch (msg)
 	{
 		case WM_DESTROY:

@@ -347,7 +347,7 @@ struct Matrix4x4
 		float k = farP / (farP - nearP);
 		float rMatrix[4][4] =
 		{
-			{g/aspectRatio, 0, 0, 0},
+			{g * aspectRatio, 0, 0, 0},
 			{0, g, 0, 0},
 			{0, 0, k, -nearP * k},
 			{0, 0, 1, 0}

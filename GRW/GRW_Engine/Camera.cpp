@@ -30,3 +30,21 @@ Matrix4x4 OrthoCamera::GetCameraProjectionMatrix()
 {
 	return ProjectionMatrix;
 }
+
+PerspectiveCamera::PerspectiveCamera(Transform& tform, float f, float nPlane, float fPlane, Vector2 sDimensions) : Camera(tform)
+{
+	FarPlane = fPlane;
+	NearPlane = nPlane;
+	fov = f;
+	screenDimension = sDimensions;
+
+	float aspectRatio = sDimensions.y / sDimensions.x;
+
+	ProjectionMatrix = Matrix4x4::GetPerspectiveProjectionMatrix(fov, NearPlane, FarPlane, aspectRatio);
+
+}
+
+Matrix4x4 PerspectiveCamera::GetCameraProjectionMatrix()
+{
+	return ProjectionMatrix;
+}
