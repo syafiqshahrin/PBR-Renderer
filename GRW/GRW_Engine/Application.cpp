@@ -465,7 +465,7 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
     AppRenderer->gfxContext->PSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
 
-    float AspectRatio = AppWindow->GetHeight() / AppWindow->GetWidth();
+    float AspectRatio = (float)AppWindow->GetHeight() / (float)AppWindow->GetWidth();
 
     //App loop
     float deltaTime = 0;
