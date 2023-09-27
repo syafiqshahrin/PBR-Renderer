@@ -1,6 +1,8 @@
 #include <Windows.h> 
 #include "Renderer.h"
 #include <iostream>
+#include <comdef.h>
+#include "Debug.h"
 
 Renderer::Renderer(HWND hWnd, int WindowWidth, int WindowHeight, bool Windowed)
 {
@@ -24,13 +26,16 @@ bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, 
     SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     SwapChainDesc.OutputWindow = hWnd;
     SwapChainDesc.SampleDesc.Count = 1;
-    SwapChainDesc.SampleDesc.Quality - 1;
+    SwapChainDesc.SampleDesc.Quality = 0;
     SwapChainDesc.Windowed = Windowed;
 
     hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &FeatureLevel, 1, D3D11_SDK_VERSION, &SwapChainDesc, &gfxSwapChain, &gfxDevice, &FeatureLevelSupported, &gfxContext);
     if (FAILED(hr))
     {
-        std::cout << "Failed to initialize dx11 device/swapchain" << std::endl;
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+
+        DEBUG("Failed to create graphics device and swapchain:" << errorText);
         return false;
     }
 
@@ -56,7 +61,7 @@ bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, 
 
     //Set and bind Rasterizer State
     rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-    rasterizerDesc.CullMode = D3D11_CULL_BACK;
+    rasterizerDesc.CullMode = D3D11_CULL_FRONT;
     rasterizerDesc.FrontCounterClockwise = true;
     rasterizerDesc.DepthBias = false;
     rasterizerDesc.DepthBiasClamp = 0;
@@ -114,6 +119,7 @@ void Renderer::ClearBackbuffer()
 {
     float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     gfxContext->ClearRenderTargetView(BackBufferRTV.Get(), clearColor);
+    gfxContext->ClearDepthStencilView(DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 void Renderer::UpdateSwapchain()
@@ -143,13 +149,16 @@ bool Renderer::InitializeDepthStencilBuffer()
     hr = gfxDevice->CreateTexture2D(&DepthStencilTexDesc, nullptr, &DepthStencilTexResource);
     if (FAILED(hr))
     {
-        std::cout << "Creating Depth Stencil texture resource failed";
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+
+        DEBUG("Failed to create depth render target view:" << errorText);
         return false;
     }
     //Fill depth stencil desc struct
     DepthStencilDesc.DepthEnable = true;
     DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
                     
     DepthStencilDesc.StencilEnable = true;
     DepthStencilDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
@@ -169,20 +178,28 @@ bool Renderer::InitializeDepthStencilBuffer()
     hr = gfxDevice->CreateDepthStencilState(&DepthStencilDesc, &DepthStencilState);
     if (FAILED(hr))
     {
-        std::cout << "Creating Depth Stencil state failed";
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+
+        DEBUG("Failed to create depth state:" << errorText);
         return false;
     }
     //Bind depth stencil state device->OMSetDepthStencilState()
     gfxContext->OMSetDepthStencilState(DepthStencilState.Get(), 1);
     //Fill depth stencil view desc struct
-    DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+    DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
     DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     DepthStencilViewDesc.Texture2D.MipSlice = 0;
+    DepthStencilViewDesc.Flags = 0;
+
     //create depth stencil view resource device->CreateDepthStencilView()
     hr = gfxDevice->CreateDepthStencilView(DepthStencilTexResource.Get(), &DepthStencilViewDesc, &DepthStencilView);
     if (FAILED(hr))
     {
-        std::cout << "Creating Depth Stencil View failed";
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+
+        DEBUG("Failed to create depth buffer:" << errorText);
         return false;
     }
     //Bind depth stencil view with context->OMSetRenderTargets

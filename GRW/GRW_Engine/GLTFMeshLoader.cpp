@@ -208,8 +208,6 @@ void GLTFMeshLoader::DecodeMeshData()
 			
 		}
 
-
-		DEBUG("count: " << t);
 		char3[2] = TempDataStore & 0xFF;
 		TempDataStore = TempDataStore >> 8;
 
