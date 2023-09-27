@@ -112,7 +112,7 @@ void Renderer::SetPrimitiveRenderingMode(const PrimType primitive)
 
 void Renderer::ClearBackbuffer()
 {
-    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     gfxContext->ClearRenderTargetView(BackBufferRTV.Get(), clearColor);
 }
 

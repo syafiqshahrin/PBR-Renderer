@@ -190,36 +190,43 @@ void GLTFMeshLoader::DecodeMeshData()
 		char char3[3];
 		int t = 0;
 		bool end = false;
+		//DEBUG(i);
 		for(int j = 0; j < 4; j++)
 		{
+
 			//DEBUG(MeshEncodedData[i + j]);
 			if (MeshEncodedData[i + j] == '=')
 			{
 				end = true;
+				t++;
 				//DEBUG("END");
 			}
 			int temp = base64Map[MeshEncodedData[i + j]];
 			TempDataStore = TempDataStore | temp;
 			if(j < 3)
 				TempDataStore = TempDataStore << 6;
-			t++;
+			
 		}
 
 
-		//DEBUG("count: " << t);
+		DEBUG("count: " << t);
 		char3[2] = TempDataStore & 0xFF;
 		TempDataStore = TempDataStore >> 8;
 
 		char3[1] = TempDataStore & 0xFF;
 		TempDataStore = TempDataStore >> 8;
+
 		char3[0] = TempDataStore & 0xFF;
 		
-		if (end)
+		if (end && t >= 1)
 		{
 			MeshDecodedData.push_back((std::byte)char3[0]);
-			//MeshDecodedData.push_back((std::byte)char3[1]);
+			if(t == 1)
+				MeshDecodedData.push_back((std::byte)char3[1]);
+
 			continue;
 		}
+
 		for (int k = 0; k < 3; k++)
 		{
 			MeshDecodedData.push_back((std::byte)char3[k]);

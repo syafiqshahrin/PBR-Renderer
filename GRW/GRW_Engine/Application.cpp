@@ -186,8 +186,8 @@ int Application::ApplicationUpdate()
     DEBUG("float:" << test);
     */
     
-    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -476,8 +476,8 @@ int Application::ApplicationUpdate()
         //render loop stuff
         //draw triangle
         Vector3 rot = cube.GetRotation();
-        //rot.z += 0.1f * deltaTime;
-        //rot.x += 0.1f * deltaTime;
+        rot.z += 0.1f * deltaTime;
+        rot.x += 0.1f * deltaTime;
         rot.y += 0.1f * deltaTime;
         //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
