@@ -465,7 +465,7 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
     AppRenderer->gfxContext->PSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
 
-
+    float AspectRatio = AppWindow->GetHeight() / AppWindow->GetWidth();
 
     //App loop
     float deltaTime = 0;
@@ -477,12 +477,13 @@ int Application::ApplicationUpdate()
         //draw triangle
         Vector3 rot = cube.GetRotation();
         rot.z += 0.1f * deltaTime;
-        rot.x += 0.1f * deltaTime;
+        rot.x += 0.2f * deltaTime;
         rot.y += 0.1f * deltaTime;
         //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
         cube.UpdateMatrix();
-        Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+        //Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+        Matrix4x4 MVP = Matrix4x4::GetPerspectiveProjectionMatrix( 60.0f, 1.0f, 1000.0f,AspectRatio) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(cbuffer.MVP);
         cbuffer.time.x += deltaTime;

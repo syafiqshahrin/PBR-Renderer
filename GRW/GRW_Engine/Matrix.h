@@ -338,14 +338,18 @@ struct Matrix4x4
 	}
 
 	//Get Pers Projection Matrix
-	static Matrix4x4 GetPersProjectionMatrix()
+	static Matrix4x4 GetPerspectiveProjectionMatrix(float fov, float nearP, float farP, float aspectRatio)
 	{
+		
+		float fovRad = fov * M_PI / 180;
+		float g = 1.0f / tan(fovRad * 0.5f);
+		float k = farP / (farP - nearP);
 		float rMatrix[4][4] =
 		{
-			{0, 0, 0, 0},
-			{0, 0, 0, 0},
-			{0, 0, 0, 0},
-			{0, 0, 0, 0}
+			{g/aspectRatio, 0, 0, 0},
+			{0, g, 0, 0},
+			{0, 0, k, -nearP * k},
+			{0, 0, 1, 0}
 		};
 		Matrix4x4 M(rMatrix);
 		return M;
