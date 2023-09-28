@@ -321,12 +321,13 @@ int Application::ApplicationUpdate()
     //Camera test
     Transform CamTes;
     CamTes.SetPosition(Vector3(0.0f,0.0f, 0.0f));
+    CamTes.SetRotation(Vector3(0.0f,0.0f, 0.0f));
     OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
-    PerspectiveCamera pCam(CamTes, 90, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
+    PerspectiveCamera pCam(CamTes, 60, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
     
 
     Transform cube;
-    cube.SetPosition(Vector3(-8.0f, 0.0f, 20.0f));
+    cube.SetPosition(Vector3(0.0f, 0.0f, 20.0f));
     cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
     cube.SetScale(Vector3(1.f, 1.f, 1.f));
     cube.UpdateMatrix();
@@ -432,18 +433,20 @@ int Application::ApplicationUpdate()
         {
             static float f = 0.0f;
 
-            Vector3 pos = cube.GetPosition();
 
+
+            Vector3 pos = cube.GetPosition();
+            float* p[3] = { &pos.x, &pos.y, &pos.z };
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             //ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat3("Position", &pos.x, pos.y, pos.z);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderFloat3("Position", *p, -100, 100);            // Edit 1 float using a slider from 0.0f to 1.0f
             //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
             cube.SetPosition(pos);
-            ImGui::SameLine();
+            //ImGui::SameLine();
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
