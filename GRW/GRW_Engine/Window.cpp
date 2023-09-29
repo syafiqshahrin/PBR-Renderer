@@ -22,11 +22,17 @@ Window::~Window()
 
 int Window::GetWidth()
 {
+	RECT clientRect;
+	GetClientRect(hWnd, &clientRect);
+	//return clientRect.bottom;
 	return width;
 }
 
 int Window::GetHeight()
 {
+	RECT clientRect;
+	GetClientRect(hWnd, &clientRect);
+	//return clientRect.bottom;
 	return height;
 }
 
@@ -75,13 +81,22 @@ void Window::InitialiseWinClass()
 
 void Window::InitialiseWindow()
 {
+	RECT clientRect;
+	clientRect.left = 0;
+	clientRect.right = width;
+	clientRect.top = 0;
+	clientRect.bottom = height;
+
+
+	AdjustWindowRect(&clientRect, (WS_VISIBLE | WS_MINIMIZEBOX | WS_CAPTION | WS_BORDER | WS_SYSMENU), FALSE);
+
 	hWnd = CreateWindowEx(
 		0,
 		pClassName,
 		name,
 		(WS_VISIBLE | WS_MINIMIZEBOX | WS_CAPTION | WS_BORDER | WS_SYSMENU),
 		200, 200,
-		width, height,
+		clientRect.right - clientRect.left, clientRect.bottom - clientRect.top,
 		nullptr, nullptr, hInst, nullptr
 	);
 	ShowWindow(hWnd, SW_SHOW);
