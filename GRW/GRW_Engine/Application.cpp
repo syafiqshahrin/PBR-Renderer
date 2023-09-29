@@ -421,6 +421,9 @@ int Application::ApplicationUpdate()
 
     MVP = MVP.Transpose();
 
+    Vector3 lightDirNorm = Vector3::zero();
+    lightDirNorm.y = -1.0f;
+
     ///cbuffer stuff
     Microsoft::WRL::ComPtr<ID3D11Buffer> constBuffer;
 
@@ -428,11 +431,26 @@ int Application::ApplicationUpdate()
     {
         Vector4 time;
         float MVP[16];
+        float MW[16];
+        float MC[16];
+        float MNorm[16];
+        Vector4 light;
     };
 
     Cbuffer cbuffer;
     cbuffer.time.x = 0;
+    cbuffer.light = lightDirNorm.GetVec4(false);
+
+    Matrix4x4 MWorld = cube.GetModelMatrix();
+    MWorld.Transpose();
+    MWorld.GetMatrixFloatArray(cbuffer.MW);
+    Matrix4x4 MView = CamTes.GetModelMatrix();
+    MView.Transpose();
+    MView.GetMatrixFloatArray(cbuffer.MC);
     MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
+    MNormal.GetMatrixFloatArray(cbuffer.MNorm);
 
     /*
     for (int i = 0; i < 4; i++)
@@ -466,6 +484,8 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
     AppRenderer->gfxContext->PSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
 
+    //
+
 
 
 
@@ -484,7 +504,7 @@ int Application::ApplicationUpdate()
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
         rot.y += 0.1f * deltaTime;
-        rot.y = fmod(rot.y, 360.0f);
+        //rot.y = fmod(rot.y, 360.0f);
         //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
         cube.UpdateMatrix();
@@ -493,7 +513,17 @@ int Application::ApplicationUpdate()
         MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+        MWorld = cube.GetModelMatrix().Transpose();
+        MView = CamTes.GetModelMatrix().Transpose();
+        MWorld.GetMatrixFloatArray(cbuffer.MW);
+        MView.GetMatrixFloatArray(cbuffer.MC);
+
+        MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
+        MNormal.GetMatrixFloatArray(cbuffer.MNorm);
+
         cbuffer.time.x += deltaTime;
+        cbuffer.light = lightDirNorm.GetVec4(false);
 
         /*
         for (int i = 0; i < 4; i++)
@@ -532,6 +562,8 @@ int Application::ApplicationUpdate()
             float* pC[3] = { &posC.x, &posC.y, &posC.z };
             float* rC[3] = { &rotC.x, &rotC.y, &rotC.z };
 
+            float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
+
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
             //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
@@ -552,6 +584,9 @@ int Application::ApplicationUpdate()
             ImGui::SliderFloat3("Cam Rotation", *rC, -100, 100);
             CamTes.SetPosition(posC);
             CamTes.SetRotation(rotC);
+
+            ImGui::Text("Light:");
+            ImGui::SliderFloat3("Direction", *lD, -1, 1);
             
             //ImGui::SameLine();
 

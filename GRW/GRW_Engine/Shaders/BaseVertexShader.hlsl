@@ -11,12 +11,17 @@ struct VSOutput
 	float4 vPos : SV_POSITION;
 	float4 col : COLOR;
 	float3 norm : NORMAL;
+	float3 normWS : NORMAL1;
 	float2 texcoord0 : TEXCOORD0;
 };
 cbuffer Cbuffer : register(b0)
 {
 	float4 time;
 	matrix MVP;
+	matrix MW;
+	matrix MC;
+	matrix MNorm;
+	float3 lightData;
 }
 VSOutput main( VSInput vIn)
 {
@@ -28,5 +33,6 @@ VSOutput main( VSInput vIn)
 	pixOut.col = vIn.vCol;
 	pixOut.norm = vIn.vNorm;
 	pixOut.texcoord0 = vIn.vTexCoord0;
+	pixOut.normWS = mul((float3x3)MW, vIn.vNorm);
 	return pixOut;
 }
