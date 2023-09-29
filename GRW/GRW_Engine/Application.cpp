@@ -20,7 +20,8 @@
 #include "IMGUI/imgui.h"
 #include "IMGUI/imgui_impl_win32.h"
 #include "IMGUI/imgui_impl_dx11.h"
-
+#define STB_IMAGE_IMPLEMENTATION
+#include "Image/stb_image.h"
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
 	AppWindow = new Window(AppTitle, w, h, hInstance);
@@ -84,7 +85,7 @@ void Application::StartApplication()
 
 int Application::ApplicationUpdate()
 {
-
+    HRESULT hr;
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -100,8 +101,92 @@ int Application::ApplicationUpdate()
     ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
     ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
     
-    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    //
+
+    //Texture Loading
+
+    int w, h, n = 0;
+    char pngTextureFilePath[] = { "D:/Asset Files/Substance Designer/Misc/Caustics_output.png" };
+    unsigned char *texdata = stbi_load(pngTextureFilePath, &w, &h, &n, 4);
+
+    DEBUG("Texture dimensions: " << w << "," << h << "," << n);
+
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> testTextureResource;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureResourceView;
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+    D3D11_TEXTURE2D_DESC texDesc;
+    texDesc.Width = w;
+    texDesc.Height = h;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.SampleDesc.Quality = 0;
+    texDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.MiscFlags = 0;
+    texDesc.CPUAccessFlags = 0;
+
+    unsigned int textRowPitch = w * 4;
+    unsigned int bitsPerPixel = 32;
+
+    D3D11_SUBRESOURCE_DATA texSubResourceData;
+    texSubResourceData.pSysMem = texdata;
+    texSubResourceData.SysMemPitch = textRowPitch;
+    texSubResourceData.SysMemSlicePitch = 0;
+
+    hr = AppRenderer->gfxDevice->CreateTexture2D(&texDesc, &texSubResourceData, &testTextureResource);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating texture2d resource - " << errorText);
+
+        //return -1;
+    }
+
+    hr = AppRenderer->gfxDevice->CreateShaderResourceView(testTextureResource.Get(), nullptr, textureResourceView.GetAddressOf());
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating texture2d shader resource view - " << errorText);
+
+        //return -1;
+    }
+
+    D3D11_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    samplerDesc.MaxLOD = FLT_MAX;
+    samplerDesc.MinLOD = -FLT_MAX;
+
+    hr = AppRenderer->gfxDevice->CreateSamplerState(&samplerDesc, &samplerState);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating sampler state - " << errorText);
+
+        //return -1;
+    }
+
+    AppRenderer->gfxContext->PSSetShaderResources(0,1, textureResourceView.GetAddressOf());
+    AppRenderer->gfxContext->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+
+    //
+
+
+    
+    //Mesh loading
+
+    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -124,13 +209,13 @@ int Application::ApplicationUpdate()
     std::vector<Vector2> uvArray;
     meshLoader.GetUVs(0, uvArray);
     
-
+    //
 
     
 
 
 
-    HRESULT hr;
+    
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
     Microsoft::WRL::ComPtr <ID3DBlob> vshaderBlob;
     hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
@@ -399,9 +484,11 @@ int Application::ApplicationUpdate()
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
         rot.y += 0.1f * deltaTime;
+        rot.y = fmod(rot.y, 360.0f);
         //DEBUG("Angle = " << rot.z);
         cube.SetRotation(rot);
         cube.UpdateMatrix();
+        CamTes.UpdateMatrix();
         //Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
         MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
@@ -425,32 +512,55 @@ int Application::ApplicationUpdate()
         AppRenderer->gfxContext->DrawIndexed(indArray.size() , 0, 0);
         //AppRenderer->UpdateSwapchain();
 
-
+        //ImGui Stuff
 
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
         {
             static float f = 0.0f;
-
-
-
             Vector3 pos = cube.GetPosition();
+            Vector3 rot = cube.GetRotation();
+            Vector3 scale = cube.GetScale();
             float* p[3] = { &pos.x, &pos.y, &pos.z };
+            float* r[3] = { &rot.x, &rot.y, &rot.z };
+            float* s[3] = { &scale.x, &scale.y, &scale.z };
+
+            Vector3 posC = CamTes.GetPosition();
+            Vector3 rotC = CamTes.GetRotation();
+
+            float* pC[3] = { &posC.x, &posC.y, &posC.z };
+            float* rC[3] = { &rotC.x, &rotC.y, &rotC.z };
+
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             //ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat3("Position", *p, -100, 100);            // Edit 1 float using a slider from 0.0f to 1.0f
-            //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::Text("Cube Transform:");               // Display some text (you can use a format strings too)
+            ImGui::SliderFloat3("Position", *p, -100, 100);            
+            ImGui::SliderFloat3("Rotation", *r, -100, 100);           
+            ImGui::SliderFloat3("Scale", *s, -100, 100);            
             cube.SetPosition(pos);
+            cube.SetRotation(rot);
+            cube.SetScale(scale);
+            //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            
+            ImGui::Text("Camera Transform:");
+            ImGui::SliderFloat3("Cam Position", *pC, -100, 100);
+            ImGui::SliderFloat3("Cam Rotation", *rC, -100, 100);
+            CamTes.SetPosition(posC);
+            CamTes.SetRotation(rotC);
+            
             //ImGui::SameLine();
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
         }
+
+
+
        // AppRenderer->ClearBackbuffer();
         ImGui::Render();
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

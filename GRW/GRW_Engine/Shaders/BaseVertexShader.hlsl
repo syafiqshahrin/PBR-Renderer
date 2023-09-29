@@ -2,7 +2,7 @@ struct VSInput
 {
 	float3 vPos : POSITION;
 	float3 vNorm : NORMAL;
-	float3 vTexCoord0 : TEXCOORD;
+	float2 vTexCoord0 : TEXCOORD;
 	float4 vCol : COLOR;
 };
 
@@ -11,7 +11,7 @@ struct VSOutput
 	float4 vPos : SV_POSITION;
 	float4 col : COLOR;
 	float3 norm : NORMAL;
-	float3 texcoord0 : TEXCOORD0;
+	float2 texcoord0 : TEXCOORD0;
 };
 cbuffer Cbuffer : register(b0)
 {
