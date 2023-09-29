@@ -33,6 +33,11 @@ VSOutput main( VSInput vIn)
 	pixOut.col = vIn.vCol;
 	pixOut.norm = vIn.vNorm;
 	pixOut.texcoord0 = vIn.vTexCoord0;
-	pixOut.normWS = mul((float3x3)MW, vIn.vNorm);
+
+	float3 NormWS = mul((float3x3)MW, vIn.vNorm);
+	float3x3 NormalMatrix = (float3x3)MNorm;
+	NormWS = mul(NormalMatrix, vIn.vNorm);
+
+	pixOut.normWS = NormWS;
 	return pixOut;
 }

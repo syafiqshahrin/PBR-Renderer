@@ -106,7 +106,8 @@ int Application::ApplicationUpdate()
     //Texture Loading
 
     int w, h, n = 0;
-    char pngTextureFilePath[] = { "D:/Asset Files/Substance Designer/Misc/Caustics_output.png" };
+    //char pngTextureFilePath[] = { "D:/Asset Files/Substance Designer/Misc/Caustics_output.png" };
+    char pngTextureFilePath[] = { "E:/My Documents/Assets/Substance Designer/Nyaowl Realm Rework/Nyaowl_Realm_Cliffs_basecolor.png" };
     unsigned char *texdata = stbi_load(pngTextureFilePath, &w, &h, &n, 4);
 
     DEBUG("Texture dimensions: " << w << "," << h << "," << n);
@@ -185,8 +186,9 @@ int Application::ApplicationUpdate()
     
     //Mesh loading
 
-    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
+    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -388,21 +390,7 @@ int Application::ApplicationUpdate()
 
     //////////
 
-    //back buffer clear color
-    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-    //TEST
-    Vector3 forward = Vector3(0, 0, 1);
-    Vector3 right = Vector3(1, 0, 0);
-
-    Vector3 added = forward + right;
-
-    float ang = forward.Angle(added) * (180 / M_PI);
-    //DEBUG("angle: " << ang);
-    //DEBUG(added.prnt().c_str());
-    //
-
-
+    
     //Camera test
     Transform CamTes;
     CamTes.SetPosition(Vector3(0.0f,0.0f, 0.0f));
@@ -442,15 +430,18 @@ int Application::ApplicationUpdate()
     cbuffer.light = lightDirNorm.GetVec4(false);
 
     Matrix4x4 MWorld = cube.GetModelMatrix();
-    MWorld.Transpose();
-    MWorld.GetMatrixFloatArray(cbuffer.MW);
-    Matrix4x4 MView = CamTes.GetModelMatrix();
-    MView.Transpose();
-    MView.GetMatrixFloatArray(cbuffer.MC);
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
+    
+    Matrix4x4 MView = CamTes.GetModelMatrix();
+    
+    MWorld.Transpose();
+    MView.Transpose();
+    
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+    MWorld.GetMatrixFloatArray(cbuffer.MW);
+    MView.GetMatrixFloatArray(cbuffer.MC);
     MNormal.GetMatrixFloatArray(cbuffer.MNorm);
+
 
     /*
     for (int i = 0; i < 4; i++)
@@ -504,35 +495,33 @@ int Application::ApplicationUpdate()
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
         rot.y += 0.1f * deltaTime;
-        //rot.y = fmod(rot.y, 360.0f);
-        //DEBUG("Angle = " << rot.z);
+        rot.y = fmod(rot.y, 360.0f);
+
+        //updating cbuffer struct
+
         cube.SetRotation(rot);
         cube.UpdateMatrix();
         CamTes.UpdateMatrix();
-        //Matrix4x4 MVP = Matrix4x4::GetOrthoProjectionMatrix(Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight())) * (CamTes.GetModelMatrix().GetInverse() * cube.GetModelMatrix());
+        
         MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(cbuffer.MVP);
 
-        MWorld = cube.GetModelMatrix().Transpose();
+        MWorld = cube.GetModelMatrix();
+        MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
         MView = CamTes.GetModelMatrix().Transpose();
+        
+        MWorld = MWorld.Transpose();
         MWorld.GetMatrixFloatArray(cbuffer.MW);
         MView.GetMatrixFloatArray(cbuffer.MC);
-
-        MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
         MNormal.GetMatrixFloatArray(cbuffer.MNorm);
+
 
         cbuffer.time.x += deltaTime;
         cbuffer.light = lightDirNorm.GetVec4(false);
 
-        /*
-        for (int i = 0; i < 4; i++)
-        {
-            DEBUG(cbuffer.MVP[(i * 4)] << "," << cbuffer.MVP[(i * 4) + 1] << "," << cbuffer.MVP[(i * 4) + 2] << "," << cbuffer.MVP[(i * 4) + 3]);
-        }
-        */
 
-        //update constant buffer data
+        //update constant buffer data on gpu 
         D3D11_MAPPED_SUBRESOURCE mappedResource;
         AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
         memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
@@ -540,7 +529,6 @@ int Application::ApplicationUpdate()
 
         AppRenderer->ClearBackbuffer();
         AppRenderer->gfxContext->DrawIndexed(indArray.size() , 0, 0);
-        //AppRenderer->UpdateSwapchain();
 
         //ImGui Stuff
 
@@ -564,12 +552,10 @@ int Application::ApplicationUpdate()
 
             float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Transforms");                         
 
-            //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            //ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::Text("Cube Transform:");               // Display some text (you can use a format strings too)
+            ImGui::Text("Cube Transform:");
             ImGui::SliderFloat3("Position", *p, -100, 100);            
             ImGui::SliderFloat3("Rotation", *r, -100, 100);           
             ImGui::SliderFloat3("Scale", *s, -100, 100);            
@@ -594,9 +580,6 @@ int Application::ApplicationUpdate()
             ImGui::End();
         }
 
-
-
-       // AppRenderer->ClearBackbuffer();
         ImGui::Render();
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
