@@ -15,13 +15,12 @@
 #include "json.hpp"
 #include <fstream>
 #include <string>
-#include <bitset>
 #include "GLTFMeshLoader.h"
 #include "IMGUI/imgui.h"
 #include "IMGUI/imgui_impl_win32.h"
 #include "IMGUI/imgui_impl_dx11.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "Image/stb_image.h"
+#include "Texture.h"
+
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
 	AppWindow = new Window(AppTitle, w, h, hInstance);
@@ -104,58 +103,18 @@ int Application::ApplicationUpdate()
     //
 
     //Texture Loading
+    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Nyaowl Realm Rework/Nyaowl_Realm_Cliffs_basecolor.png");
+    DiffuseTex.CreateTexture(AppRenderer);
+    DiffuseTex.BindTexture(AppRenderer, 0);
 
-    int w, h, n = 0;
-    //char pngTextureFilePath[] = { "D:/Asset Files/Substance Designer/Misc/Caustics_output.png" };
-    char pngTextureFilePath[] = { "E:/My Documents/Assets/Substance Designer/Nyaowl Realm Rework/Nyaowl_Realm_Cliffs_basecolor.png" };
-    unsigned char *texdata = stbi_load(pngTextureFilePath, &w, &h, &n, 4);
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Nyaowl Realm Rework/Nyaowl_Realm_Cliffs_normal.png");
+    NormalTex.CreateTexture(AppRenderer);
+    NormalTex.BindTexture(AppRenderer, 1);
+    
 
-    DEBUG("Texture dimensions: " << w << "," << h << "," << n);
+    //Sampler setup
 
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> testTextureResource;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureResourceView;
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
-    D3D11_TEXTURE2D_DESC texDesc;
-    texDesc.Width = w;
-    texDesc.Height = h;
-    texDesc.MipLevels = 1;
-    texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-    texDesc.SampleDesc.Count = 1;
-    texDesc.SampleDesc.Quality = 0;
-    texDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    texDesc.MiscFlags = 0;
-    texDesc.CPUAccessFlags = 0;
-
-    unsigned int textRowPitch = w * 4;
-    unsigned int bitsPerPixel = 32;
-
-    D3D11_SUBRESOURCE_DATA texSubResourceData;
-    texSubResourceData.pSysMem = texdata;
-    texSubResourceData.SysMemPitch = textRowPitch;
-    texSubResourceData.SysMemSlicePitch = 0;
-
-    hr = AppRenderer->gfxDevice->CreateTexture2D(&texDesc, &texSubResourceData, &testTextureResource);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creating texture2d resource - " << errorText);
-
-        //return -1;
-    }
-
-    hr = AppRenderer->gfxDevice->CreateShaderResourceView(testTextureResource.Get(), nullptr, textureResourceView.GetAddressOf());
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creating texture2d shader resource view - " << errorText);
-
-        //return -1;
-    }
-
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> SamplerState;
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -167,7 +126,7 @@ int Application::ApplicationUpdate()
     samplerDesc.MaxLOD = FLT_MAX;
     samplerDesc.MinLOD = -FLT_MAX;
 
-    hr = AppRenderer->gfxDevice->CreateSamplerState(&samplerDesc, &samplerState);
+    hr = AppRenderer->gfxDevice->CreateSamplerState(&samplerDesc, &SamplerState);
     if (FAILED(hr))
     {
         _com_error error(hr);
@@ -177,8 +136,7 @@ int Application::ApplicationUpdate()
         //return -1;
     }
 
-    AppRenderer->gfxContext->PSSetShaderResources(0,1, textureResourceView.GetAddressOf());
-    AppRenderer->gfxContext->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+    AppRenderer->gfxContext->PSSetSamplers(0, 1, SamplerState.GetAddressOf());
 
     //
 

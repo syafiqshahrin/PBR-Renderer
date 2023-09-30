@@ -20,6 +20,7 @@ cbuffer Cbuffer : register(b0)
 }
 
 Texture2D testTex: register(t0);
+Texture2D testTexNorm: register(t1);
 SamplerState samplerTest: register(s0);
 
 
@@ -27,10 +28,10 @@ float4 main(VSOutput pIN) : SV_TARGET
 {
 	
 	
-	float lighting = saturate(dot(pIN.normWS, normalize(lightData) * -1));
+	float lighting = saturate(dot(pIN.normWS, normalize(lightData) * -1))  * 1;
 	float2 uv = pIN.texcoord0;
 	float timeScaled = time.x * 0.01;
-	float4 tex = testTex.Sample(samplerTest, uv);
+	float4 tex = testTexNorm.Sample(samplerTest, uv);
 	float4 color = tex * lighting;
 	return color;
 	//return float4(1,0,0,1);
