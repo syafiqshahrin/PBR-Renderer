@@ -143,6 +143,31 @@ void GLTFMeshLoader::GetUVs(int submeshIndex, std::vector<Vector2>& uvs)
 
 }
 
+void GLTFMeshLoader::GetTangents(int submeshIndex, std::vector<Vector4>& tangent)
+{
+	int start = MeshInfo.TangentStartOffset[submeshIndex];
+	int maxByteLength = start + MeshInfo.TangentByteLength[submeshIndex];
+	std::vector<float> f;
+	for (unsigned int j = start, k = 0; j < maxByteLength; j += 4, k++)
+	{
+		std::byte fl[4];
+		fl[0] = MeshDecodedData[j];
+		fl[1] = MeshDecodedData[j + 1];
+		fl[2] = MeshDecodedData[j + 2];
+		fl[3] = MeshDecodedData[j + 3];
+
+		f.push_back(0);
+		std::memcpy(&f[k], fl, sizeof(float));
+	}
+
+	//DEBUG(f.size() / 3);
+	for (int i = 0, k = 0; i < f.size(); i += 4, k++)
+	{
+		tangent.push_back(Vector4(f[i], f[i + 1], f[i + 2], f[i + 3]));
+	}
+	//DEBUG(tangent.size());
+}
+
 void GLTFMeshLoader::LoadJSonFile()
 {
 	std::ifstream f(FilePath.c_str());
@@ -176,6 +201,11 @@ void GLTFMeshLoader::LoadJSonFile()
 		int bufferViewUVIndex = GLTFJsonData["accessors"][accessorUVIndex]["bufferView"];
 		MeshInfo.UVStartOffset.push_back(GLTFJsonData["bufferViews"][bufferViewUVIndex]["byteOffset"]);
 		MeshInfo.UVByteLength.push_back(GLTFJsonData["bufferViews"][bufferViewUVIndex]["byteLength"]);
+
+		int accessorTangentIndex = GLTFJsonData["meshes"][0]["primitives"][i]["attributes"]["TANGENT"];
+		int bufferViewTangentIndex = GLTFJsonData["accessors"][accessorTangentIndex]["bufferView"];
+		MeshInfo.TangentStartOffset.push_back(GLTFJsonData["bufferViews"][bufferViewTangentIndex]["byteOffset"]);
+		MeshInfo.TangentByteLength.push_back(GLTFJsonData["bufferViews"][bufferViewTangentIndex]["byteLength"]);
 
 	}
 }

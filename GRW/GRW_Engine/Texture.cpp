@@ -23,7 +23,7 @@ bool Texture2D::CreateTexture(Renderer* renderer)
     TextureDesc.Height = TexDimensionsH;
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 1;
-    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
     TextureDesc.Usage = D3D11_USAGE_IMMUTABLE;

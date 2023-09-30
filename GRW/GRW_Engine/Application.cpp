@@ -103,11 +103,11 @@ int Application::ApplicationUpdate()
     //
 
     //Texture Loading
-    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Nyaowl Realm Rework/Nyaowl_Realm_Cliffs_basecolor.png");
+    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_Albedo_AO.png");
     DiffuseTex.CreateTexture(AppRenderer);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
-    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Nyaowl Realm Rework/Nyaowl_Realm_Cliffs_normal.png");
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
     NormalTex.CreateTexture(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
     
@@ -145,8 +145,8 @@ int Application::ApplicationUpdate()
     //Mesh loading
 
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
+    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -168,6 +168,9 @@ int Application::ApplicationUpdate()
 
     std::vector<Vector2> uvArray;
     meshLoader.GetUVs(0, uvArray);
+
+    std::vector<Vector4> tanArray;
+    meshLoader.GetTangents(0, tanArray);
     
     //
 
@@ -201,10 +204,11 @@ int Application::ApplicationUpdate()
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    hr = AppRenderer->gfxDevice->CreateInputLayout(inLayoutDesc, 4, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
+    hr = AppRenderer->gfxDevice->CreateInputLayout(inLayoutDesc, 5, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
     if (FAILED(hr))
     {
         _com_error error(hr);
@@ -219,7 +223,7 @@ int Application::ApplicationUpdate()
     ////Dummy triangle mesh test data
     struct vertex
     {
-        vertex(Vector3 p, Vector3 n, Vector2 uv, float r, float g, float b)
+        vertex(Vector3 p, Vector3 n, Vector2 uv, Vector4 t, float r, float g, float b)
         {
             
             pos[0] = p.x;
@@ -229,6 +233,11 @@ int Application::ApplicationUpdate()
             norm[0] = n.x;
             norm[1] = n.y;
             norm[2] = n.z;
+
+            tan[0] = t.x;
+            tan[1] = t.y;
+            tan[2] = t.z;
+            tan[3] = t.w;
 
             texc[0] = uv.x;
             texc[1] = uv.y;
@@ -243,12 +252,13 @@ int Application::ApplicationUpdate()
         float norm[3] = {};
         float texc[2] = {};
         float col[3] = {};
+        float tan[4] = {};
     };
 
     std::vector<vertex> meshData;
     for (int i = 0; i < posArray.size(); i++)
     {
-        meshData.push_back(vertex(posArray[i], normArray[i], uvArray[i], 0, 1, 0));
+        meshData.push_back(vertex(posArray[i], normArray[i], uvArray[i], tanArray[i], 0, 1, 0));
     }
   
     /*
@@ -381,11 +391,13 @@ int Application::ApplicationUpdate()
         float MC[16];
         float MNorm[16];
         Vector4 light;
+        Vector4 Ambient;
     };
 
     Cbuffer cbuffer;
     cbuffer.time.x = 0;
     cbuffer.light = lightDirNorm.GetVec4(false);
+    cbuffer.Ambient = Vector4(83.0f/255, 83.0f / 255, 133.0f/255.0f, 1);
 
     Matrix4x4 MWorld = cube.GetModelMatrix();
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
@@ -452,8 +464,8 @@ int Application::ApplicationUpdate()
         Vector3 rot = cube.GetRotation();
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
-        rot.y += 0.1f * deltaTime;
-        rot.y = fmod(rot.y, 360.0f);
+        //rot.y += 0.1f * deltaTime;
+        //rot.y = fmod(rot.y, 360.0f);
 
         //updating cbuffer struct
 
@@ -510,6 +522,8 @@ int Application::ApplicationUpdate()
 
             float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
 
+            float* ac[3] = { &cbuffer.Ambient.x, &cbuffer.Ambient.x , &cbuffer.Ambient.z};
+
             ImGui::Begin("Transforms");                         
 
 
@@ -520,7 +534,6 @@ int Application::ApplicationUpdate()
             cube.SetPosition(pos);
             cube.SetRotation(rot);
             cube.SetScale(scale);
-            //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
             
             ImGui::Text("Camera Transform:");
@@ -531,6 +544,7 @@ int Application::ApplicationUpdate()
 
             ImGui::Text("Light:");
             ImGui::SliderFloat3("Direction", *lD, -1, 1);
+            ImGui::ColorEdit3("Ambient color", *ac); // Edit 3 floats representing a color
             
             //ImGui::SameLine();
 

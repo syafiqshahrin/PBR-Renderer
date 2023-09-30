@@ -22,6 +22,8 @@ struct GLTFMeshInfo
 	std::vector<int> UVStartOffset;
 	std::vector<int> UVByteLength;
 
+	std::vector<int> TangentStartOffset;
+	std::vector<int> TangentByteLength;
 };
 
 class GLTFMeshLoader
@@ -34,6 +36,7 @@ public:
 	void GetIndices(int submeshIndex, std::vector<unsigned int>& indices);
 	void GetNormals(int submeshIndex, std::vector<Vector3>& normals);
 	void GetUVs(int submeshIndex, std::vector<Vector2>& uvs);
+	void GetTangents(int submeshIndex, std::vector<Vector4>& tangent);
 private:
 	void LoadJSonFile();
 	void DecodeMeshData();
