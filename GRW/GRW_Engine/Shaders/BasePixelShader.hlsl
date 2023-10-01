@@ -54,7 +54,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	};
 
 	//Textures
-	float2 uv = pIN.texcoord0;
+	float2 uv = pIN.texcoord0 * 3;
 	float4 tex = DiffuseTex.Sample(samplerTest, uv);
 	float4 texNorm = NormTex.Sample(samplerTest, uv) * 2.0f - 1.0f;
 
