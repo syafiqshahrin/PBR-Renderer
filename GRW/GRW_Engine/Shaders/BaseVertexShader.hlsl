@@ -17,6 +17,7 @@ struct VSOutput
 	float2 texcoord0 : TEXCOORD0;
 	float3 T : TANGENTWS;
 	float3 N : NORMALWS;
+	float3 B : BITANWS;
 
 };
 cbuffer Cbuffer : register(b0)
@@ -41,11 +42,16 @@ VSOutput main( VSInput vIn)
 	pixOut.texcoord0 = vIn.vTexCoord0;
 
 	//Normal and Tangent
-	float3 t = normalize(mul(MW, float4(vIn.vTangent.xyz, 0)).xyz );
-	float3 n = normalize(mul(MW, float4(vIn.vNorm.xyz, 0)).xyz );
+	//float3 t = normalize(mul(MW, float4(vIn.vTangent.xyz, 0)).xyz );
+	//float3 n = normalize(mul(MW, float4(vIn.vNorm.xyz, 0)).xyz );
+	float3 bitan = cross(vIn.vNorm, vIn.vTangent.xyz) * vIn.vTangent.w;
+	float3 t = normalize(mul(MNorm, vIn.vTangent.xyz));
+	float3 n = normalize(mul(MNorm, vIn.vNorm));
+	float3 b = normalize(mul(MNorm, bitan));
 
 	pixOut.T = t;
 	pixOut.N = n;
+	pixOut.B = b;
 	pixOut.tangent = vIn.vTangent;
 	pixOut.norm = vIn.vNorm;
 

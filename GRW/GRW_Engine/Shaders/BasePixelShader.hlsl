@@ -8,6 +8,7 @@ struct VSOutput
 	float2 texcoord0 : TEXCOORD0;
 	float3 T : TANGENTWS;
 	float3 N : NORMALWS;
+	float3 B : BITANWS;
 };
 
 cbuffer Cbuffer : register(b0)
@@ -40,12 +41,14 @@ float4 main(VSOutput pIN) : SV_TARGET
 	//float3x3 NormalMatrix = (float3x3)MNorm;
 	//float3 normalWS = mul(NormalMatrix, pIN.norm);
 	
-	float4 tan = pIN.tangent;
-	float3 bitan = cross(pIN.norm, tan.xyz) * tan.w;
-	float3 B = normalize(mul(MW, float4(bitan.xyz, 0)).xyz);
+	//float4 tan = pIN.tangent;
+	//float3 bitan = cross(pIN.norm, tan.xyz) * tan.w;
+	//float3 B = normalize(mul(MW, float4(bitan.xyz, 0)).xyz);
+	//float3 B = normalize(mul(MNorm, bitan));
 
 	float3 T = normalize(pIN.T);
 	float3 N = normalize(pIN.N);
+	float3 B = normalize(pIN.B);
 
 	float3x3 Mtbn = {
 		T.x, T.y, T.z,

@@ -103,11 +103,13 @@ int Application::ApplicationUpdate()
     //
 
     //Texture Loading
-    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
+    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
+    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     DiffuseTex.CreateTexture(AppRenderer);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
-    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
+    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
     NormalTex.CreateTexture(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
     
