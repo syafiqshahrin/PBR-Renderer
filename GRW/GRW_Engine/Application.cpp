@@ -104,12 +104,14 @@ int Application::ApplicationUpdate()
 
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
-    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
+    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
+    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
     DiffuseTex.CreateTexture(AppRenderer);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
     NormalTex.CreateTexture(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
     
@@ -148,7 +150,8 @@ int Application::ApplicationUpdate()
 
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
     //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
-    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
+    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -394,12 +397,14 @@ int Application::ApplicationUpdate()
         float MNorm[16];
         Vector4 light;
         Vector4 Ambient;
+        Vector4 CamPosWS;
     };
 
     Cbuffer cbuffer;
     cbuffer.time.x = 0;
     cbuffer.light = lightDirNorm.GetVec4(false);
     cbuffer.Ambient = Vector4(83.0f/255, 83.0f / 255, 133.0f/255.0f, 1);
+    cbuffer.CamPosWS = CamTes.GetPosition().GetVec4(true);
 
     Matrix4x4 MWorld = cube.GetModelMatrix();
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
@@ -466,8 +471,8 @@ int Application::ApplicationUpdate()
         Vector3 rot = cube.GetRotation();
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
-        rot.y += 0.1f * deltaTime;
-        rot.y = fmod(rot.y, 360.0f);
+        //rot.y += 0.1f * deltaTime;
+        //rot.y = fmod(rot.y, 360.0f);
 
         //updating cbuffer struct
 
@@ -488,7 +493,7 @@ int Application::ApplicationUpdate()
         MView.GetMatrixFloatArray(cbuffer.MC);
         MNormal.GetMatrixFloatArray(cbuffer.MNorm);
 
-
+        cbuffer.CamPosWS = CamTes.GetPosition().GetVec4(true);
         cbuffer.time.x += deltaTime;
         cbuffer.light = lightDirNorm.GetVec4(false);
 

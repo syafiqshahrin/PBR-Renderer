@@ -24,6 +24,7 @@ bool Texture2D::CreateTexture(Renderer* renderer)
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 1;
     TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    //TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
     TextureDesc.Usage = D3D11_USAGE_IMMUTABLE;
