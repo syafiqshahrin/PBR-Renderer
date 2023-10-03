@@ -27,11 +27,80 @@ cbuffer Cbuffer : register(b0)
 
 Texture2D DiffuseTex: register(t0);
 Texture2D NormTex: register(t1);
-Texture2D RMATex: register(t3);
+Texture2D RMATex: register(t2);
 SamplerState samplerTest: register(s0);
 
 static const float PI = 3.14159265f;
 
+float3 FresnelSchlick(float3 baseC, float metal, float3 v, float3 h)
+{
+	// FresnelFactor using Fresnel-Schlick: F = F0 + (1 - F0) (1 - (dot(V, H))^5
+	float3 F0 = lerp(0.04, baseC.rgb, metal);
+	float p = pow(1 - max(dot(v, h), 0.0001), 5.0);
+	float3 F = F0 + (float3(1,1,1) - F0) * p;
+	return F;
+}
+
+float3 DiffuseFract(float f, float metal)
+{
+	// K = (1 - F) * (1 - m)
+	float3 K = (float3(1, 1, 1) - f) * (1 - metal);
+	return K;
+}
+
+float3 DiffuseBRDF(float3 baseC)
+{
+	//Diffuse = (BaseColor / PI)
+	float3 dif = baseC / PI;
+	return dif;
+}
+
+float NormalDistributionFunction(float roughness, float3 n, float3 h)
+{
+	//Normal distribution function: (GGX Trowbridge-Reitz) D = (a ^ 2) / PI * (dot(N,H)^2 * (a^2 - 1) + 1)^2
+	float a2 = roughness * roughness;
+	float ndoth = max(dot(n, h), 0.0001);
+	float ndoth2 = ndoth * ndoth;
+	float denom1 = (ndoth2 * (a2 - 1) + 1);
+	float denom2 = denom1 * denom1;
+	float fullDenom = PI * denom2;
+	float D = a2 / fullDenom;
+	return D;
+}
+
+float GeometrySelfShadowingSchlick(float roughness, float3 n, float3 x)
+{
+	// k = a/2
+	// G1(N,X) = dot(N,X) / (dot(N, X)) * 1 - k) + k
+	float k = roughness / 2;
+	float ndotx = max(dot(n, x), 0.0001);
+	float denom = ndotx * (1 - k) + k;
+	float G1 = ndotx / denom;
+	return G1;
+}
+
+float GeometrySelfShadowingSmith(float roughness, float3 n, float3 v, float3 l)
+{
+	//Geometry shadowing function: (Schlick GGX = Combination of Schlick-Beckman model and the Smith model) G = G1(L,N) * G1(V,N)
+	float G = GeometrySelfShadowingSchlick(roughness, n, l) * GeometrySelfShadowingSchlick(roughness, n, v);
+	return G;
+}
+
+float3 SpecularBRDF(float3 baseC, float roughness, float metallic, float3 n, float3 v, float3 l, float3 h)
+{
+	//Specular = (D * G * F) / (4 * (dot(V, N)) * (dot(L, N)))
+	float D = NormalDistributionFunction(roughness, n, h);
+	float G = GeometrySelfShadowingSmith(roughness, n, v, l);
+	float3 F = FresnelSchlick(baseC, metallic, v, h);
+
+	float3 numerator = D * G * F;
+	float ndotv = max(dot(n, v), 0.0001);
+	float ndotl = max(dot(n, l), 0.0001);
+	float denom = 4 * ndotv * ndotl;
+	float3 Specular = numerator / denom;
+	return Specular;
+
+}
 
 float4 main(VSOutput pIN) : SV_TARGET
 {
@@ -39,50 +108,51 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float timeScaled = time.x * 0.01;
 	
 	//Can move to cbuffer later on
-	float lightIntensity = 1;
+	float lightIntensity = 2	;
 	float4 lightCol = float4(1,1,1,1) * lightIntensity;
 
 	//Normal and Tangent
 	//float3x3 NormalMatrix = (float3x3)MNorm;
 	//float3 normalWS = mul(NormalMatrix, pIN.norm);
 	
-	//float4 tan = pIN.tangent;
-	//float3 bitan = cross(pIN.norm, tan.xyz) * tan.w;
+	float4 tan = pIN.tangent;
+	float3 bitan = cross(pIN.norm, tan.xyz) * tan.w;
 	//float3 B = normalize(mul(MW, float4(bitan.xyz, 0)).xyz);
-	//float3 B = normalize(mul(MNorm, bitan));
+	float3 B = normalize(mul(MNorm, bitan));
 
 
 
 	float3 T = normalize(pIN.T);
-	float3 N = normalize(pIN.N);
-	float3 B = normalize(pIN.B);
+	float3 Nv = normalize(pIN.N);
+	//float3 B = normalize(pIN.B);
 
 	float3x3 Mtbn = {
 		T.x, T.y, T.z,
 		B.x, B.y, B.z,
-		N.x, N.y, N.z
+		Nv.x, Nv.y, Nv.z
 	};
 
 	//Textures
-	float2 uv = pIN.texcoord0 * 3;
+	float2 uv = pIN.texcoord0 * 2;
 	float4 baseColor = DiffuseTex.Sample(samplerTest, uv);
 	float4 RMA = RMATex.Sample(samplerTest, uv);
 	float4 texNorm = NormTex.Sample(samplerTest, uv) * 2.0f - 1.0f;
 
-	float3 testNorm = normalize(mul(transpose(Mtbn), texNorm.xyz));
+	float3 N = normalize(mul(transpose(Mtbn), texNorm.xyz));
 
-	//Blinn Phong + Lambert Lighting
-	float3 L = normalize(lightData) * -1;
-	float3 V = normalize(CamWS.xyz - pIN.posWS.xyz);
+	float3 L = normalize(lightData * -1) ;
+	float3 V = normalize(CamWS.rgb - pIN.posWS.xyz);
 	float3 H = normalize(L + V);
+	float NDL = saturate(dot(N, L));
+	//Blinn Phong + Lambert Lighting
+	/*
 	float BlinnPhongSpec = pow(saturate(dot(H, testNorm)), 1000.0);
-	float NDL = saturate(dot(testNorm, L));
 	float4 Spec = BlinnPhongSpec * lightCol * 0;
 	float4 Diffuse = NDL * lightCol;
 	//float4 Light = NDL * (lightCol + (lightCol * BlinnPhongSpec)) + Ambient;
 	float4 Light = Diffuse + Spec + Ambient;
 	float4 color = saturate(baseColor * Light);
-
+	*/
 
 	//PBR Lighting
 	//general rendering equation: FinalColor =  sum (BRDF * Light * NDOTL)
@@ -104,25 +174,24 @@ float4 main(VSOutput pIN) : SV_TARGET
 	// k = a/2
 	//F = Fresnel Schlick
 
-	float m = RMA.r;
-	float a = RMA.g;
-	float3 F0 = lerp(0.04, baseColor.rgb, m);
-	//F-Schlick
-	float F = F0 + (1 - F0) * pow((1 - saturate(dot(V, H))), 5.0);
-	float K = (1 - F) * (1 - m);
-	float Diffuse = (baseColor.rgb / PI);
-	float D = (a * a) / PI * ((saturate(dot(N, H)) * saturate(dot(N, H)) * (a * a - 1) + 1) * (saturate(dot(N, H)) * saturate(dot(N, H)) * (a * a - 1) + 1)); //can be optimized more
-	float k = a / 2;
-	float G = (saturate(dot(N, L)) / saturate(max(dot(N, L), 0.0001)) * (1 - k) + k) * (saturate(dot(N, V)) / saturate(max(dot(N, V), 0.0001)) * (1 - k) + k);
-	float Specular = (D * G * F) / (4 * saturate(max(dot(V, N), 0.0001)) * saturate(max(dot(L, N), 0.0001)));
+	//float r = RMA.r;
+	float r = max(RMA.r, 0.001);
+	float m = RMA.g;
+
+	float3 F = FresnelSchlick(baseColor.rgb, m, V, H);
+	float3 K = DiffuseFract(F, m);
+
+	float3 Diffuse = DiffuseBRDF(baseColor.rgb);
+	float3 Specular = SpecularBRDF(baseColor.rgb, r, m, N, V, L, H);
+
 	float3 BRDF = (K * Diffuse) + Specular;
 
-	float3 final = BRDF * lightCol * NDL;
+	float3 final = BRDF * lightCol.rgb * NDL;
 
 
 	//Final Color
-	color = saturate(baseColor * Light);
-	float4 test = float4(BlinnPhongSpec.xxxx);
+	float4 color = float4(final.rgb,1);
+	//float4 test = float4(BlinnPhongSpec.xxxx);
 	return color;
 
 }

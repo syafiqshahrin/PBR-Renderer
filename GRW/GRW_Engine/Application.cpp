@@ -104,17 +104,20 @@ int Application::ApplicationUpdate()
 
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
-    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
-    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
+    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
+    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
     DiffuseTex.CreateTexture(AppRenderer);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
     NormalTex.CreateTexture(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
-    
+
+    Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat_Simpler_Cooler_Tone_RMA.png");
+    RMATex.CreateTexture(AppRenderer);
+    RMATex.BindTexture(AppRenderer, 2);
 
     //Sampler setup
 
@@ -149,9 +152,9 @@ int Application::ApplicationUpdate()
     //Mesh loading
 
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/TestGLTF.gltf");
-    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
+    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
+    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
