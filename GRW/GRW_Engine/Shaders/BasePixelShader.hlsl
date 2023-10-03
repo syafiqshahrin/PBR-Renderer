@@ -108,7 +108,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float timeScaled = time.x * 0.01;
 	
 	//Can move to cbuffer later on
-	float lightIntensity = 2	;
+	float lightIntensity = 3;
 	float4 lightCol = float4(1,1,1,1) * lightIntensity;
 
 	//Normal and Tangent
