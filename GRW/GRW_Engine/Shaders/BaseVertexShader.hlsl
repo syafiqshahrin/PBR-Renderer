@@ -31,6 +31,8 @@ cbuffer Cbuffer : register(b0)
 	float3 lightData;
 	float4 Ambient;
 	float4 CamWS;
+	float4 PLightPos;
+	float4 PLightCol;
 }
 VSOutput main( VSInput vIn)
 {

@@ -20,6 +20,11 @@
 #include "IMGUI/imgui_impl_win32.h"
 #include "IMGUI/imgui_impl_dx11.h"
 #include "Texture.h"
+#include "Light.h"
+
+//#define STB_IMAGE_IMPLEMENTATION
+#include "Image/stb_image.h"
+
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -104,20 +109,89 @@ int Application::ApplicationUpdate()
 
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
-    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
-    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
+    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
+    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
     DiffuseTex.CreateTexture(AppRenderer);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
+    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
     NormalTex.CreateTexture(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
-    Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat_Simpler_Cooler_Tone_RMA.png");
+    Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
     RMATex.CreateTexture(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
+
+
+
+    //Cubemap Texture loading
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> CubeMapTex;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CubeMapTexShaderView;
+    
+    int TexDimensionsW, TexDimensionsH, pixelComponent;
+    std::string FilePath = "C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_";
+    unsigned char* TextureData[6];
+    
+    for (int i = 0; i < 6; i++)
+    {
+        std::string completePath = FilePath +  std::to_string(i) + ".jpg";
+        TextureData[i] = stbi_load(completePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, 4);
+    }
+    int RowPitch = TexDimensionsW * 4;
+    DEBUG(TexDimensionsW);
+
+    D3D11_TEXTURE2D_DESC cubemapTexDesc;
+    cubemapTexDesc.Width = TexDimensionsW;
+    cubemapTexDesc.Height = TexDimensionsH;
+    cubemapTexDesc.MipLevels = 1;
+    cubemapTexDesc.ArraySize = 6;
+    cubemapTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    cubemapTexDesc.SampleDesc.Count = 1;
+    cubemapTexDesc.SampleDesc.Quality = 0;
+    cubemapTexDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    cubemapTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    cubemapTexDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    cubemapTexDesc.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA cubemapSubResourceData[6];
+
+    for (int i = 0; i < 6; i++)
+    {
+        cubemapSubResourceData[i].pSysMem = TextureData[i];
+        cubemapSubResourceData[i].SysMemPitch = RowPitch;
+        cubemapSubResourceData[i].SysMemSlicePitch = 0;
+    }
+    hr = AppRenderer->gfxDevice->CreateTexture2D(&cubemapTexDesc, &cubemapSubResourceData[0], &CubeMapTex);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating cubemap texture - " << errorText);
+
+        //return -1;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC cubemapShaderViewDesc;
+    cubemapShaderViewDesc.Format = cubemapTexDesc.Format;
+    cubemapShaderViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    cubemapShaderViewDesc.TextureCube.MipLevels = cubemapTexDesc.MipLevels;
+    cubemapShaderViewDesc.TextureCube.MostDetailedMip = 0;
+
+    hr = AppRenderer->gfxDevice->CreateShaderResourceView(CubeMapTex.Get(), &cubemapShaderViewDesc, &CubeMapTexShaderView);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating cubemap texture shader view - " << errorText);
+
+        //return -1;
+    }
+
+    AppRenderer->gfxContext->PSSetShaderResources(3, 1, CubeMapTexShaderView.GetAddressOf());
+    //
+    
 
     //Sampler setup
 
@@ -131,7 +205,7 @@ int Application::ApplicationUpdate()
     samplerDesc.MaxAnisotropy = 1;
     samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     samplerDesc.MaxLOD = FLT_MAX;
-    samplerDesc.MinLOD = -FLT_MAX;
+    samplerDesc.MinLOD = 0.0f;
 
     hr = AppRenderer->gfxDevice->CreateSamplerState(&samplerDesc, &SamplerState);
     if (FAILED(hr))
@@ -153,8 +227,9 @@ int Application::ApplicationUpdate()
 
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
+    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
     //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
-    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
+    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
 
     std::vector<Vector3> posArray;
     meshLoader.GetVertexPositions(posArray);
@@ -388,6 +463,12 @@ int Application::ApplicationUpdate()
     Vector3 lightDirNorm = Vector3::zero();
     lightDirNorm.y = -1.0f;
 
+    Transform pLight;
+    pLight.SetPosition(Vector3(-3.0f, 0.0f, 5.0f));
+    Vector3 plColor = Vector3(0.8f, 0.0f, 0.6f);
+    PointLight pointLight1(pLight, 10.0f, plColor, 4.0f);
+    
+
     ///cbuffer stuff
     Microsoft::WRL::ComPtr<ID3D11Buffer> constBuffer;
 
@@ -401,6 +482,8 @@ int Application::ApplicationUpdate()
         Vector4 light;
         Vector4 Ambient;
         Vector4 CamPosWS;
+        Vector4 PointLightPos;
+        Vector4 PointLightColor;
     };
 
     Cbuffer cbuffer;
@@ -408,7 +491,10 @@ int Application::ApplicationUpdate()
     cbuffer.light = lightDirNorm.GetVec4(false);
     cbuffer.Ambient = Vector4(83.0f/255, 83.0f / 255, 133.0f/255.0f, 1);
     cbuffer.CamPosWS = CamTes.GetPosition().GetVec4(true);
-
+    cbuffer.PointLightPos = pointLight1.GetPosition().GetVec4(true);
+    cbuffer.PointLightPos.w = pointLight1.GetLightRadius();
+    cbuffer.PointLightColor = pointLight1.GetColor().GetVec4(false);
+    cbuffer.PointLightColor.w = pointLight1.GetIntensity();
     Matrix4x4 MWorld = cube.GetModelMatrix();
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
     
@@ -500,6 +586,10 @@ int Application::ApplicationUpdate()
         cbuffer.time.x += deltaTime;
         cbuffer.light = lightDirNorm.GetVec4(false);
 
+        cbuffer.PointLightPos = pointLight1.GetPosition().GetVec4(true);
+        cbuffer.PointLightPos.w = pointLight1.GetLightRadius();
+        cbuffer.PointLightColor = pointLight1.GetColor().GetVec4(false);
+        cbuffer.PointLightColor.w = pointLight1.GetIntensity();
 
         //update constant buffer data on gpu 
         D3D11_MAPPED_SUBRESOURCE mappedResource;

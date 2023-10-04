@@ -21,24 +21,23 @@ bool Texture2D::CreateTexture(Renderer* renderer)
     LoadTextureFromFile();
     TextureDesc.Width = TexDimensionsW;
     TextureDesc.Height = TexDimensionsH;
-    TextureDesc.MipLevels = 1;
+    TextureDesc.MipLevels = 0;
     TextureDesc.ArraySize = 1;
     TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    //TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
-    TextureDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    TextureDesc.MiscFlags = 0;
+    TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+    TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    TextureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
     TextureDesc.CPUAccessFlags = 0;
 
-
+    //only need subresource if not creating texture w generated mips
     D3D11_SUBRESOURCE_DATA texSubResourceData;
     texSubResourceData.pSysMem = TextureData;
     texSubResourceData.SysMemPitch = RowPitch;
     texSubResourceData.SysMemSlicePitch = 0;
 
-    HRESULT hr = renderer->gfxDevice->CreateTexture2D(&TextureDesc, &texSubResourceData, &Texture2DResource);
+    HRESULT hr = renderer->gfxDevice->CreateTexture2D(&TextureDesc, nullptr, &Texture2DResource);
     if (FAILED(hr))
     {
         _com_error error(hr);
@@ -49,7 +48,16 @@ bool Texture2D::CreateTexture(Renderer* renderer)
         return false;
     }
 
-    hr = renderer->gfxDevice->CreateShaderResourceView(Texture2DResource.Get(), nullptr, TextureShaderView.GetAddressOf());
+    //need this to generate mips
+    renderer->gfxContext->UpdateSubresource(Texture2DResource.Get(), 0, nullptr, TextureData, RowPitch, 0);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC textviewdesc;
+    textviewdesc.Format = TextureDesc.Format;
+    textviewdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    textviewdesc.Texture2D.MipLevels = -1;
+    textviewdesc.Texture2D.MostDetailedMip = 0;
+
+    hr = renderer->gfxDevice->CreateShaderResourceView(Texture2DResource.Get(), &textviewdesc, TextureShaderView.GetAddressOf());
     if (FAILED(hr))
     {
         _com_error error(hr);
@@ -58,7 +66,8 @@ bool Texture2D::CreateTexture(Renderer* renderer)
 
         //return -1;
     }
-
+    //generate mips
+    renderer->gfxContext->GenerateMips(TextureShaderView.Get());
     free(TextureData);
 
 	return true;
