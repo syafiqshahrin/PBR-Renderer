@@ -114,24 +114,26 @@ int Application::ApplicationUpdate()
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
-    Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
+    //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
+    Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
     DiffuseTex.CreateTextureFromFile(AppRenderer, false);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
     NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
-    Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
+    //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
+    Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
     RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
     //Cubemap Texture loading
-    TextureCube cubemap("C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_");
-    cubemap.CreateTextureFromFile(AppRenderer);
-    cubemap.BindTexture(AppRenderer, 3);
+    //TextureCube cubemap("C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_");
+    //cubemap.CreateTextureFromFile(AppRenderer);
+    //cubemap.BindTexture(AppRenderer, 3);
 #pragma endregion
 
 #pragma region Sampler Setup temp
@@ -168,7 +170,8 @@ int Application::ApplicationUpdate()
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
-    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
     //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
 
@@ -340,10 +343,11 @@ int Application::ApplicationUpdate()
 #pragma region Scene stuff
     //Scene
     //Camera test
+    AppRenderer->SetViewport(1024, 1024);
     Transform CamTes;
     CamTes.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
+    OrthoCamera cam(CamTes, Vector3(-1, -1, 0.0f), Vector3(1, 1, 1), Vector2(1024, 1024));
     PerspectiveCamera pCam(CamTes, 90, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
 
     Transform cube;
@@ -376,6 +380,7 @@ int Application::ApplicationUpdate()
         float MW[16];
         float MC[16];
         float MNorm[16];
+        float VP[16];
         Vector4 light;
         Vector4 Ambient;
         Vector4 CamPosWS;
@@ -396,6 +401,8 @@ int Application::ApplicationUpdate()
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
 
     Matrix4x4 MView = CamTes.GetModelMatrix();
+    
+  
 
     MWorld.Transpose();
     MView.Transpose();
@@ -405,7 +412,10 @@ int Application::ApplicationUpdate()
     MView.GetMatrixFloatArray(cbuffer.MC);
     MNormal.GetMatrixFloatArray(cbuffer.MNorm);
 
-
+    PerspectiveCamera pCam2(CamTes, 90, 0.1f, 100000.0f, Vector2(1024, 1024));
+    Matrix4x4 ViewP = pCam2.GetCameraProjectionMatrix() * pCam2.GetCameraViewMatrix();
+    ViewP = ViewP.Transpose();
+    ViewP.GetMatrixFloatArray(cbuffer.VP);
 
     D3D11_BUFFER_DESC cbDesc;
     cbDesc.ByteWidth = sizeof(Cbuffer);
@@ -438,123 +448,48 @@ int Application::ApplicationUpdate()
     //Generating cube map test
    //face right
     TextureCube genCubeMap;
-
-    PerspectiveCamera pCam2(CamTes, 90, 0.1f, 100000.0f, Vector2(1024, 1024));
-
     genCubeMap.CreateCubeMapRenderTexture(AppRenderer, 1024, 1024);
-    genCubeMap.BindAsRenderTarget(AppRenderer, 0);
+    AppRenderer->SetViewport(1024, 1024);
+    Vector3 rots[6] =
+    {
+        Vector3(0.0f, 90.0f, 0.0f),
+        Vector3(0.0f, -90.0f, 0.0f),
+        Vector3(-90.0f, 0.0f, 0.0f),
+        Vector3(90.0f, 0.0f, 0.0f),
+        Vector3(0.0f, 0.0f, 0.0f),
+        Vector3(0.0f, 180.0f, 0.0f)
+    };
 
-    CamTes.SetRotation(Vector3(0.0f, 90.0f, 0.0f));
-    CamTes.UpdateMatrix();
 
-    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
 
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+    for (int i = 0; i < 6; i++)
+    {
+        genCubeMap.BindAsRenderTarget(AppRenderer, i);
+        CamTes.SetRotation(rots[i]);
+        CamTes.UpdateMatrix();
 
-    //AppRenderer->ClearBackbuffer();
-    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+        ViewP = pCam2.GetCameraProjectionMatrix() * pCam2.GetCameraViewMatrix();
+        ViewP = ViewP.Transpose();
+        ViewP.GetMatrixFloatArray(cbuffer.VP);
 
-    //face left
-    genCubeMap.BindAsRenderTarget(AppRenderer, 1);
+        D3D11_MAPPED_SUBRESOURCE mappedResource;
+        AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+        AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
 
-    CamTes.SetRotation(Vector3(0.0f, -90.0f, 0.0f));
-    CamTes.UpdateMatrix();
+        //AppRenderer->ClearBackbuffer();
+        AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+    }
 
-    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-
-    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
-
-    //AppRenderer->ClearBackbuffer();
-    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
-
-    //face up
-    genCubeMap.BindAsRenderTarget(AppRenderer, 2);
-
-    CamTes.SetRotation(Vector3(-90.0f, 0.0f, 0.0f));
-    CamTes.UpdateMatrix();
-
-    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-
-    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
-
-    //AppRenderer->ClearBackbuffer();
-    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
-
-    //face down
-    genCubeMap.BindAsRenderTarget(AppRenderer, 3);
-
-    CamTes.SetRotation(Vector3(90.0f, 0.0f, 0.0f));
-    CamTes.UpdateMatrix();
-
-    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-
-    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
-
-    //AppRenderer->ClearBackbuffer();
-    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
-
-    //face front
-    genCubeMap.BindAsRenderTarget(AppRenderer, 4);
-
-    CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    CamTes.UpdateMatrix();
-
-    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-
-    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
-
-    //AppRenderer->ClearBackbuffer();
-    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
-
-    //face back
-    genCubeMap.BindAsRenderTarget(AppRenderer, 5);
-
-    CamTes.SetRotation(Vector3(0.0f, 180.0f, 0.0f));
-    CamTes.UpdateMatrix();
-
-    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-
-    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
-
-    //AppRenderer->ClearBackbuffer();
-    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+    AppRenderer->SetViewport(1920, 1080);
+    AppRenderer->BindBackBufferAsRenderTarget();
     genCubeMap.BindTexture(AppRenderer, 3);
-
-    CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    CamTes.UpdateMatrix();
-
 
 #pragma endregion
 
-    AppRenderer->BindBackBufferAsRenderTarget();
 
 #pragma region Vertex and Pixel Shader switch
-
+    ///*
     hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
     //hr = D3DReadFileToBlob(L"../Shaders/HDRConverterVertShader.cso", &vshaderBlob);
     if (FAILED(hr))
@@ -569,6 +504,7 @@ int Application::ApplicationUpdate()
     //hr = D3DReadFileToBlob(L"../Shaders/HDRConverterPixShader.cso", &pshaderBlob);
     AppRenderer->gfxDevice->CreatePixelShader(pshaderBlob->GetBufferPointer(), pshaderBlob->GetBufferSize(), nullptr, &pixShader);
     AppRenderer->gfxContext->PSSetShader(pixShader.Get(), nullptr, 0u);
+    //*/
 #pragma endregion
 
     //App loop

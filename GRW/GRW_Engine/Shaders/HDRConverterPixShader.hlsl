@@ -11,6 +11,7 @@ cbuffer Cbuffer : register(b0)
 	matrix MW;
 	matrix MC;
 	matrix MNorm;
+	matrix MViewProj;
 	float3 lightData;
 	float4 Ambient;
 	float4 CamWS;

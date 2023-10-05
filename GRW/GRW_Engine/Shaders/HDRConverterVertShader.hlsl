@@ -20,6 +20,7 @@ cbuffer Cbuffer : register(b0)
 	matrix MW;
 	matrix MC;
 	matrix MNorm;
+	matrix MViewProj;
 	float3 lightData;
 	float4 Ambient;
 	float4 CamWS;
@@ -33,7 +34,7 @@ VSOutput main(VSInput vIn)
 
 	//Position
 	float4 pos4 = float4(vIn.vPos, 1);
-	pixOut.vPos = mul(MVP, pos4);
+	pixOut.vPos = mul(MViewProj, pos4);
 	pixOut.localPos = vIn.vPos;
 
 	return pixOut;

@@ -24,6 +24,8 @@ public:
 	void ClearBackbuffer();
 	void UpdateSwapchain();
 	void BindBackBufferAsRenderTarget();
+	void SetViewport(int w, int h);
+	void RestoreViewport();
 
 private:
 	HRESULT hr;
