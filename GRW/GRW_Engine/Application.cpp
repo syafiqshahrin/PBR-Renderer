@@ -111,22 +111,27 @@ int Application::ApplicationUpdate()
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
-    DiffuseTex.CreateTexture(AppRenderer);
+    DiffuseTex.CreateTextureFromFile(AppRenderer);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
     Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
-    NormalTex.CreateTexture(AppRenderer);
+    NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
     Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
-    RMATex.CreateTexture(AppRenderer);
+    RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
 
 
     //Cubemap Texture loading
+    TextureCube cubemap("C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_");
+    cubemap.CreateTextureFromFile(AppRenderer);
+    cubemap.BindTexture(AppRenderer, 3);
+
+    /*
     Microsoft::WRL::ComPtr<ID3D11Texture2D> CubeMapTex;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CubeMapTexShaderView;
     
@@ -190,6 +195,7 @@ int Application::ApplicationUpdate()
     }
 
     AppRenderer->gfxContext->PSSetShaderResources(3, 1, CubeMapTexShaderView.GetAddressOf());
+    */
     //
     
 

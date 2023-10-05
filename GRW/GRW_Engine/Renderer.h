@@ -23,6 +23,7 @@ public:
 
 	void ClearBackbuffer();
 	void UpdateSwapchain();
+	void BindBackBufferAsRenderTarget();
 
 private:
 	HRESULT hr;
@@ -50,5 +51,6 @@ private:
 
 private:
 	bool InitializeDepthStencilBuffer();
+	bool SwapChainAndDepthBufferInitialised;
 
 };

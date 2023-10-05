@@ -6,6 +6,7 @@
 
 Renderer::Renderer(HWND hWnd, int WindowWidth, int WindowHeight, bool Windowed)
 {
+    SwapChainAndDepthBufferInitialised = false;
     InitializeRenderer(hWnd, WindowWidth, WindowHeight, Windowed);
 }
 
@@ -78,6 +79,7 @@ bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, 
 
     //
     InitializeDepthStencilBuffer();
+    SwapChainAndDepthBufferInitialised = true;
     //bind render target
     gfxContext->OMSetRenderTargets(1, BackBufferRTV.GetAddressOf(), DepthStencilView.Get());
 	return true;
@@ -125,6 +127,12 @@ void Renderer::ClearBackbuffer()
 void Renderer::UpdateSwapchain()
 {
     gfxSwapChain->Present(0,0);
+}
+
+void Renderer::BindBackBufferAsRenderTarget()
+{
+    if(SwapChainAndDepthBufferInitialised)
+        gfxContext->OMSetRenderTargets(1, BackBufferRTV.GetAddressOf(), DepthStencilView.Get());
 }
 
 
