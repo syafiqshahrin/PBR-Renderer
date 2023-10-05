@@ -149,7 +149,8 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	//environment map temp
 	float3 R = reflect(-V, N);
-	float4 Sky = Cubemap.Sample(samplerTest, R.xyz);
+	//float4 Sky = Cubemap.Sample(samplerTest, R.xyz);
+	float4 Sky = Cubemap.Sample(samplerTest, pIN.posWS.xyz);
 
 	//for Directional Light
 	float3 L0 = normalize(lightData * -1) ;

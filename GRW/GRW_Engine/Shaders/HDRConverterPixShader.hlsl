@@ -20,6 +20,7 @@ cbuffer Cbuffer : register(b0)
 
 
 Texture2D DiffuseTex: register(t0);
+TextureCube genCubeMap: register(t3);
 SamplerState samplerTest: register(s0);
 
 static const float PI = 3.14159265f;
@@ -39,6 +40,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 {
 	float2 uv = GetSphericalMapUV(normalize(pIN.localPos));
 	float3 col = DiffuseTex.Sample(samplerTest, uv).rgb;
+	//float3 test = genCubeMap.Sample(samplerTest, pIN.localPos);
 
 	return float4(col.rgb, 1);
 }

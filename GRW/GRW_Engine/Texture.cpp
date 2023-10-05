@@ -301,8 +301,8 @@ bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, D
     IsRenderTexture = true;
     HRESULT hr;
 
-    TextureDesc.Width = TexDimensionsW;
-    TextureDesc.Height = TexDimensionsH;
+    TextureDesc.Width = w;
+    TextureDesc.Height = h;
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 6;
     TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -353,7 +353,7 @@ bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, D
         {
             _com_error error(hr);
             LPCTSTR errorText = error.ErrorMessage();
-            DEBUG("Failed creating cubemap texture shader view - " << errorText);
+            DEBUG("Failed creating cubemap texture render view - " << errorText);
 
             return false;
         }

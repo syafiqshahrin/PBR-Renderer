@@ -244,7 +244,7 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->IASetInputLayout(inputLayoutHandle.Get());
 #pragma endregion
 
-#pragma region Vertex and index buffer steup temp
+#pragma region Vertex and index buffer setup temp
     //Create vertex buffer and Bind data to Input Assembler
     struct vertex
     {
@@ -337,19 +337,14 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 #pragma endregion
 
-    
-
-
-
-    
+#pragma region Scene stuff
     //Scene
     //Camera test
     Transform CamTes;
-    CamTes.SetPosition(Vector3(0.0f,0.0f, 0.0f));
-    CamTes.SetRotation(Vector3(0.0f,0.0f, 0.0f));
+    CamTes.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
     OrthoCamera cam(CamTes, Vector3(-10, -10, 0.0f), Vector3(10, 10, 10), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
-    PerspectiveCamera pCam(CamTes, 60, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
-    
+    PerspectiveCamera pCam(CamTes, 90, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
 
     Transform cube;
     cube.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
@@ -368,6 +363,7 @@ int Application::ApplicationUpdate()
     pLight.SetPosition(Vector3(-3.0f, 0.0f, 5.0f));
     Vector3 plColor = Vector3(0.8f, 0.0f, 0.6f);
     PointLight pointLight1(pLight, 10.0f, plColor, 4.0f);
+#pragma endregion
     
 #pragma region Cbuffer setup temp
     ///cbuffer stuff
@@ -438,6 +434,142 @@ int Application::ApplicationUpdate()
 #pragma endregion
 
 
+#pragma region Generate cubemap test
+    //Generating cube map test
+   //face right
+    TextureCube genCubeMap;
+
+    PerspectiveCamera pCam2(CamTes, 90, 0.1f, 100000.0f, Vector2(1024, 1024));
+
+    genCubeMap.CreateCubeMapRenderTexture(AppRenderer, 1024, 1024);
+    genCubeMap.BindAsRenderTarget(AppRenderer, 0);
+
+    CamTes.SetRotation(Vector3(0.0f, 90.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
+    MVP = MVP.Transpose();
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+
+    //AppRenderer->ClearBackbuffer();
+    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+
+    //face left
+    genCubeMap.BindAsRenderTarget(AppRenderer, 1);
+
+    CamTes.SetRotation(Vector3(0.0f, -90.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
+    MVP = MVP.Transpose();
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+
+    //AppRenderer->ClearBackbuffer();
+    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+
+    //face up
+    genCubeMap.BindAsRenderTarget(AppRenderer, 2);
+
+    CamTes.SetRotation(Vector3(-90.0f, 0.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
+    MVP = MVP.Transpose();
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+
+    //AppRenderer->ClearBackbuffer();
+    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+
+    //face down
+    genCubeMap.BindAsRenderTarget(AppRenderer, 3);
+
+    CamTes.SetRotation(Vector3(90.0f, 0.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
+    MVP = MVP.Transpose();
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+
+    //AppRenderer->ClearBackbuffer();
+    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+
+    //face front
+    genCubeMap.BindAsRenderTarget(AppRenderer, 4);
+
+    CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
+    MVP = MVP.Transpose();
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+
+    //AppRenderer->ClearBackbuffer();
+    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+
+    //face back
+    genCubeMap.BindAsRenderTarget(AppRenderer, 5);
+
+    CamTes.SetRotation(Vector3(0.0f, 180.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+    MVP = pCam2.GetCameraProjectionMatrix() * (pCam2.GetCameraViewMatrix() * cube.GetModelMatrix());
+    MVP = MVP.Transpose();
+    MVP.GetMatrixFloatArray(cbuffer.MVP);
+
+    AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
+    AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+
+    //AppRenderer->ClearBackbuffer();
+    AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
+    genCubeMap.BindTexture(AppRenderer, 3);
+
+    CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+    CamTes.UpdateMatrix();
+
+
+#pragma endregion
+
+    AppRenderer->BindBackBufferAsRenderTarget();
+
+#pragma region Vertex and Pixel Shader switch
+
+    hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
+    //hr = D3DReadFileToBlob(L"../Shaders/HDRConverterVertShader.cso", &vshaderBlob);
+    if (FAILED(hr))
+    {
+        std::cout << "Failed" << std::endl;
+    }
+    AppRenderer->gfxDevice->CreateVertexShader(vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), nullptr, &vertexShader);
+    AppRenderer->gfxContext->VSSetShader(vertexShader.Get(), nullptr, 0u);
+
+    //Create and bind pixel shader
+    hr = D3DReadFileToBlob(L"../Shaders/BasePixelShader.cso", &pshaderBlob);
+    //hr = D3DReadFileToBlob(L"../Shaders/HDRConverterPixShader.cso", &pshaderBlob);
+    AppRenderer->gfxDevice->CreatePixelShader(pshaderBlob->GetBufferPointer(), pshaderBlob->GetBufferSize(), nullptr, &pixShader);
+    AppRenderer->gfxContext->PSSetShader(pixShader.Get(), nullptr, 0u);
+#pragma endregion
 
     //App loop
     float deltaTime = 0;
