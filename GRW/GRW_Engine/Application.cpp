@@ -90,6 +90,8 @@ void Application::StartApplication()
 int Application::ApplicationUpdate()
 {
     HRESULT hr;
+
+#pragma region IMGUI Setup
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -104,14 +106,16 @@ int Application::ApplicationUpdate()
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
     ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
-    
-    //
+#pragma endregion
 
+
+#pragma region Texture Loading and Setup
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
-    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
-    DiffuseTex.CreateTextureFromFile(AppRenderer);
+    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
+    Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
+    DiffuseTex.CreateTextureFromFile(AppRenderer, false);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
@@ -124,89 +128,20 @@ int Application::ApplicationUpdate()
     RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
-
-
     //Cubemap Texture loading
     TextureCube cubemap("C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_");
     cubemap.CreateTextureFromFile(AppRenderer);
     cubemap.BindTexture(AppRenderer, 3);
+#pragma endregion
 
-    /*
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> CubeMapTex;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CubeMapTexShaderView;
-    
-    int TexDimensionsW, TexDimensionsH, pixelComponent;
-    std::string FilePath = "C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_";
-    unsigned char* TextureData[6];
-    
-    for (int i = 0; i < 6; i++)
-    {
-        std::string completePath = FilePath +  std::to_string(i) + ".jpg";
-        TextureData[i] = stbi_load(completePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, 4);
-    }
-    int RowPitch = TexDimensionsW * 4;
-    DEBUG(TexDimensionsW);
-
-    D3D11_TEXTURE2D_DESC cubemapTexDesc;
-    cubemapTexDesc.Width = TexDimensionsW;
-    cubemapTexDesc.Height = TexDimensionsH;
-    cubemapTexDesc.MipLevels = 1;
-    cubemapTexDesc.ArraySize = 6;
-    cubemapTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    cubemapTexDesc.SampleDesc.Count = 1;
-    cubemapTexDesc.SampleDesc.Quality = 0;
-    cubemapTexDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    cubemapTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    cubemapTexDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-    cubemapTexDesc.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA cubemapSubResourceData[6];
-
-    for (int i = 0; i < 6; i++)
-    {
-        cubemapSubResourceData[i].pSysMem = TextureData[i];
-        cubemapSubResourceData[i].SysMemPitch = RowPitch;
-        cubemapSubResourceData[i].SysMemSlicePitch = 0;
-    }
-    hr = AppRenderer->gfxDevice->CreateTexture2D(&cubemapTexDesc, &cubemapSubResourceData[0], &CubeMapTex);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creating cubemap texture - " << errorText);
-
-        //return -1;
-    }
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC cubemapShaderViewDesc;
-    cubemapShaderViewDesc.Format = cubemapTexDesc.Format;
-    cubemapShaderViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-    cubemapShaderViewDesc.TextureCube.MipLevels = cubemapTexDesc.MipLevels;
-    cubemapShaderViewDesc.TextureCube.MostDetailedMip = 0;
-
-    hr = AppRenderer->gfxDevice->CreateShaderResourceView(CubeMapTex.Get(), &cubemapShaderViewDesc, &CubeMapTexShaderView);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creating cubemap texture shader view - " << errorText);
-
-        //return -1;
-    }
-
-    AppRenderer->gfxContext->PSSetShaderResources(3, 1, CubeMapTexShaderView.GetAddressOf());
-    */
-    //
-    
-
+#pragma region Sampler Setup temp
     //Sampler setup
-
     Microsoft::WRL::ComPtr<ID3D11SamplerState> SamplerState;
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
     samplerDesc.MipLODBias = 0.0f;
     samplerDesc.MaxAnisotropy = 1;
     samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
@@ -224,16 +159,16 @@ int Application::ApplicationUpdate()
     }
 
     AppRenderer->gfxContext->PSSetSamplers(0, 1, SamplerState.GetAddressOf());
+#pragma endregion
 
-    //
+#pragma region Mesh Loading
 
-
-    
     //Mesh loading
 
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
     //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
-    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
     //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
     //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
 
@@ -260,17 +195,16 @@ int Application::ApplicationUpdate()
 
     std::vector<Vector4> tanArray;
     meshLoader.GetTangents(0, tanArray);
-    
+
     //
+#pragma endregion
 
-    
+#pragma region Vertex and Pixel Shader setup temp
 
-
-
-    
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
     Microsoft::WRL::ComPtr <ID3DBlob> vshaderBlob;
-    hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
+    //hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
+    hr = D3DReadFileToBlob(L"../Shaders/HDRConverterVertShader.cso", &vshaderBlob);
     if (FAILED(hr))
     {
         std::cout << "Failed" << std::endl;
@@ -281,7 +215,8 @@ int Application::ApplicationUpdate()
     //Create and bind pixel shader
     Microsoft::WRL::ComPtr<ID3D11PixelShader> pixShader;
     Microsoft::WRL::ComPtr <ID3DBlob> pshaderBlob;
-    hr = D3DReadFileToBlob(L"../Shaders/BasePixelShader.cso", &pshaderBlob);
+    //hr = D3DReadFileToBlob(L"../Shaders/BasePixelShader.cso", &pshaderBlob);
+    hr = D3DReadFileToBlob(L"../Shaders/HDRConverterPixShader.cso", &pshaderBlob);
     AppRenderer->gfxDevice->CreatePixelShader(pshaderBlob->GetBufferPointer(), pshaderBlob->GetBufferSize(), nullptr, &pixShader);
     AppRenderer->gfxContext->PSSetShader(pixShader.Get(), nullptr, 0u);
 
@@ -307,18 +242,19 @@ int Application::ApplicationUpdate()
         //return -1;
     }
     AppRenderer->gfxContext->IASetInputLayout(inputLayoutHandle.Get());
+#pragma endregion
 
+#pragma region Vertex and index buffer steup temp
     //Create vertex buffer and Bind data to Input Assembler
-    ////Dummy triangle mesh test data
     struct vertex
     {
         vertex(Vector3 p, Vector3 n, Vector2 uv, Vector4 t, float r, float g, float b)
         {
-            
+
             pos[0] = p.x;
             pos[1] = p.y;
             pos[2] = p.z;
-            
+
             norm[0] = n.x;
             norm[1] = n.y;
             norm[2] = n.z;
@@ -349,20 +285,8 @@ int Application::ApplicationUpdate()
     {
         meshData.push_back(vertex(posArray[i], normArray[i], uvArray[i], tanArray[i], 0, 1, 0));
     }
-  
-    /*
-    vertex meshData[] = {
-        vertex(-0.5f, -0.5f, -0.5f, 1,0,0), //0 - front bot left
-        vertex(0.5f, -0.5f, -0.5f, 0,1,0), //1 - front bot right
-        vertex(-0.5f, 0.5f, -0.5f, 0,0,1), //2 - front top left
-        vertex(0.5f, 0.5f, -0.5f, 1,1,0), //3 - front top right
-        vertex(-0.5f, -0.5f, 0.5f, 1,0,0), //4 - back bot left
-        vertex(0.5f, -0.5f, 0.5f, 0,1,0), //5 - back bot right
-        vertex(-0.5f, 0.5f, 0.5f, 0,0,1), //6 - back top left
-        vertex(0.5f, 0.5f, 0.5f, 1,1,0) //7 - back top right
-    };
-    */
-    ////
+
+
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertBuffer;
 
@@ -397,23 +321,6 @@ int Application::ApplicationUpdate()
     Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 
 
-    UINT meshIndicesData[]
-    {
-        0, 1, 2,
-        1,3,2,
-        1,5,3,
-        5,7,3,
-        5,4,7,
-        4,6,7,
-        4,0,6,
-        0,2,6,
-        2,3,6,
-        3,7,6,
-        4,5,0,
-        5,1,0
-
-    };
-
     D3D11_BUFFER_DESC indBufferDesc;
     indBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     indBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -426,28 +333,16 @@ int Application::ApplicationUpdate()
 
     AppRenderer->gfxDevice->CreateBuffer(&indBufferDesc, &srd, &indexBuffer);
     AppRenderer->gfxContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
     //set primitive topology type
     AppRenderer->gfxContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    /*
-    //Set scissor rect
-    //optional functionality
-    //scissor is used to do additionally clipping within the viewport region
-    D3D11_RECT scissorRect;
-    scissorRect.left = 0 + (width/3) ;
-    scissorRect.right = width - (width/3);
-    scissorRect.top = 0 + (height / 3);
-    scissorRect.bottom = height - (height / 3);
-
-    //AppRenderer->gfxContext->RSSetScissorRects(1, &scissorRect);
-    */
-
-
-
-    //////////
+#pragma endregion
 
     
+
+
+
+    
+    //Scene
     //Camera test
     Transform CamTes;
     CamTes.SetPosition(Vector3(0.0f,0.0f, 0.0f));
@@ -457,7 +352,7 @@ int Application::ApplicationUpdate()
     
 
     Transform cube;
-    cube.SetPosition(Vector3(0.0f, 0.0f, 20.0f));
+    cube.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
     cube.SetScale(Vector3(1.f, 1.f, 1.f));
     cube.UpdateMatrix();
@@ -474,7 +369,7 @@ int Application::ApplicationUpdate()
     Vector3 plColor = Vector3(0.8f, 0.0f, 0.6f);
     PointLight pointLight1(pLight, 10.0f, plColor, 4.0f);
     
-
+#pragma region Cbuffer setup temp
     ///cbuffer stuff
     Microsoft::WRL::ComPtr<ID3D11Buffer> constBuffer;
 
@@ -495,7 +390,7 @@ int Application::ApplicationUpdate()
     Cbuffer cbuffer;
     cbuffer.time.x = 0;
     cbuffer.light = lightDirNorm.GetVec4(false);
-    cbuffer.Ambient = Vector4(83.0f/255, 83.0f / 255, 133.0f/255.0f, 1);
+    cbuffer.Ambient = Vector4(83.0f / 255, 83.0f / 255, 133.0f / 255.0f, 1);
     cbuffer.CamPosWS = CamTes.GetPosition().GetVec4(true);
     cbuffer.PointLightPos = pointLight1.GetPosition().GetVec4(true);
     cbuffer.PointLightPos.w = pointLight1.GetLightRadius();
@@ -503,24 +398,18 @@ int Application::ApplicationUpdate()
     cbuffer.PointLightColor.w = pointLight1.GetIntensity();
     Matrix4x4 MWorld = cube.GetModelMatrix();
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
-    
+
     Matrix4x4 MView = CamTes.GetModelMatrix();
-    
+
     MWorld.Transpose();
     MView.Transpose();
-    
+
     MVP.GetMatrixFloatArray(cbuffer.MVP);
     MWorld.GetMatrixFloatArray(cbuffer.MW);
     MView.GetMatrixFloatArray(cbuffer.MC);
     MNormal.GetMatrixFloatArray(cbuffer.MNorm);
 
 
-    /*
-    for (int i = 0; i < 4; i++)
-    {
-        DEBUG(cbuffer.MVP[(i * 4)] << "," << cbuffer.MVP[(i * 4) + 1] << "," << cbuffer.MVP[(i * 4) + 2] << "," << cbuffer.MVP[(i * 4) + 3]);
-    }
-    */
 
     D3D11_BUFFER_DESC cbDesc;
     cbDesc.ByteWidth = sizeof(Cbuffer);
@@ -546,9 +435,7 @@ int Application::ApplicationUpdate()
 
     AppRenderer->gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
     AppRenderer->gfxContext->PSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
-
-    //
-
+#pragma endregion
 
 
 

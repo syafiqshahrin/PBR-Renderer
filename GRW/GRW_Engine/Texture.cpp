@@ -168,6 +168,16 @@ bool Texture2D::CreateRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMA
         return false;
     }
 
+    hr = renderer->gfxDevice->CreateShaderResourceView(Texture2DResource.Get(), nullptr, TextureShaderView.GetAddressOf());
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating texture2d shader resource view - " << errorText);
+
+        //return -1;
+    }
+
 }
 
 void Texture2D::BindTexture(Renderer* renderer, int bindslot)
@@ -187,21 +197,30 @@ void Texture2D::ReleaseTexture()
 		//free(TextureData);
 	Texture2DResource->Release();
     TextureShaderView->Release();
-    TextureRenderView->Release();
+    if(IsRenderTexture)
+        TextureRenderView->Release();
 }
 
 void Texture2D::LoadTextureFromFile()
 {
+    stbi_set_flip_vertically_on_load(true);
     TextureData = stbi_load(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, 4);
-    RowPitch = TexDimensionsW * pixelComponent;
+    RowPitch = TexDimensionsW * 4;
 }
 
 
 
 
+TextureCube::TextureCube()
+{
+    PartialFilePath = "";
+    IsRenderTexture = false;
+}
+
 TextureCube::TextureCube(std::string parfilepath)
 {
     PartialFilePath = parfilepath;
+    IsRenderTexture = false;
 }
 
 TextureCube::~TextureCube()
@@ -211,6 +230,7 @@ TextureCube::~TextureCube()
 
 bool TextureCube::CreateTextureFromFile(Renderer* renderer)
 {
+    IsRenderTexture = false;
     HRESULT hr;
     LoadTextureFromFile();
    
@@ -271,9 +291,86 @@ bool TextureCube::CreateTextureFromFile(Renderer* renderer)
     return true;
 }
 
+bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMAT format)
+{
+
+    //Fill out tex desc
+    //Create texture resource
+    //Create Shader view resource
+    //Create 6 render view target - one for each face
+    IsRenderTexture = true;
+    HRESULT hr;
+
+    TextureDesc.Width = TexDimensionsW;
+    TextureDesc.Height = TexDimensionsH;
+    TextureDesc.MipLevels = 1;
+    TextureDesc.ArraySize = 6;
+    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    TextureDesc.SampleDesc.Count = 1;
+    TextureDesc.SampleDesc.Quality = 0;
+    TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+    TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    TextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    TextureDesc.CPUAccessFlags = 0;
+    
+    hr = renderer->gfxDevice->CreateTexture2D(&TextureDesc, nullptr, &Texture2DResource);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating cubemap texture - " << errorText);
+
+        return false;
+    }
+    
+    D3D11_SHADER_RESOURCE_VIEW_DESC cubemapShaderViewDesc;
+    cubemapShaderViewDesc.Format = format;
+    cubemapShaderViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    cubemapShaderViewDesc.TextureCube.MipLevels = TextureDesc.MipLevels;
+    cubemapShaderViewDesc.TextureCube.MostDetailedMip = 0;
+
+    hr = renderer->gfxDevice->CreateShaderResourceView(Texture2DResource.Get(), &cubemapShaderViewDesc, &TextureShaderView);
+    if (FAILED(hr))
+    {
+        _com_error error(hr);
+        LPCTSTR errorText = error.ErrorMessage();
+        DEBUG("Failed creating cubemap texture shader view - " << errorText);
+
+        return false;
+    }
+
+
+    D3D11_RENDER_TARGET_VIEW_DESC viewDesc = {};
+    viewDesc.Format = format;
+    viewDesc.Texture2DArray.ArraySize = 1;
+    viewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+    
+    for (int i = 0; i < 6; i++)
+    {
+        viewDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
+        hr = renderer->gfxDevice->CreateRenderTargetView(Texture2DResource.Get(), &viewDesc, TextureRenderView[i].GetAddressOf());
+        if (FAILED(hr))
+        {
+            _com_error error(hr);
+            LPCTSTR errorText = error.ErrorMessage();
+            DEBUG("Failed creating cubemap texture shader view - " << errorText);
+
+            return false;
+        }
+    }
+    
+    return false;
+}
+
 void TextureCube::BindTexture(Renderer* renderer, int bindslot)
 {
     renderer->gfxContext->PSSetShaderResources(bindslot, 1, TextureShaderView.GetAddressOf());
+}
+
+void TextureCube::BindAsRenderTarget(Renderer* renderer, int face)
+{
+    if (IsRenderTexture)
+        renderer->gfxContext->OMSetRenderTargets(1, TextureRenderView[face].GetAddressOf(), nullptr);
 }
 
 void TextureCube::ReleaseTexture()
