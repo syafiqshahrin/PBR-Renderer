@@ -25,8 +25,9 @@ public:
 	void UpdateSwapchain();
 	void BindBackBufferAsRenderTarget();
 	void SetViewport(int w, int h);
-	void RestoreViewport();
+	void UpdateRasterizerState();
 
+	D3D11_RASTERIZER_DESC rasterizerDesc;
 private:
 	HRESULT hr;
 	
@@ -41,7 +42,6 @@ private:
 	//Rasterizer and viewport stuff
 	D3D11_VIEWPORT BaseViewport;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
-	D3D11_RASTERIZER_DESC rasterizerDesc;
 
 	//Depth Stencil Buffer stuff
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> DepthStencilTexResource;

@@ -448,8 +448,10 @@ int Application::ApplicationUpdate()
     //Generating cube map test
    //face right
     TextureCube genCubeMap;
-    genCubeMap.CreateCubeMapRenderTexture(AppRenderer, 1024, 1024);
-    AppRenderer->SetViewport(1024, 1024);
+    genCubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
+    AppRenderer->SetViewport(512, 512);
+    AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
+    AppRenderer->UpdateRasterizerState();
     Vector3 rots[6] =
     {
         Vector3(0.0f, 90.0f, 0.0f),
@@ -459,8 +461,6 @@ int Application::ApplicationUpdate()
         Vector3(0.0f, 0.0f, 0.0f),
         Vector3(0.0f, 180.0f, 0.0f)
     };
-
-
 
     for (int i = 0; i < 6; i++)
     {
@@ -481,6 +481,8 @@ int Application::ApplicationUpdate()
         AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
     }
 
+    AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    AppRenderer->UpdateRasterizerState();
     AppRenderer->SetViewport(1920, 1080);
     AppRenderer->BindBackBufferAsRenderTarget();
     genCubeMap.BindTexture(AppRenderer, 3);
@@ -590,7 +592,7 @@ int Application::ApplicationUpdate()
 
             ImGui::Text("Cube Transform:");
             ImGui::SliderFloat3("Position", *p, -100, 100);            
-            ImGui::SliderFloat3("Rotation", *r, -100, 100);           
+            ImGui::SliderFloat3("Rotation", *r, -180, 180);           
             ImGui::SliderFloat3("Scale", *s, -100, 100);            
             cube.SetPosition(pos);
             cube.SetRotation(rot);
@@ -599,7 +601,7 @@ int Application::ApplicationUpdate()
             
             ImGui::Text("Camera Transform:");
             ImGui::SliderFloat3("Cam Position", *pC, -100, 100);
-            ImGui::SliderFloat3("Cam Rotation", *rC, -100, 100);
+            ImGui::SliderFloat3("Cam Rotation", *rC, -180, 180);
             CamTes.SetPosition(posC);
             CamTes.SetRotation(rotC);
 

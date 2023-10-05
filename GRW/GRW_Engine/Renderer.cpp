@@ -147,6 +147,12 @@ void Renderer::SetViewport(int w, int h)
     gfxContext->RSSetViewports(1, &BaseViewport);
 }
 
+void Renderer::UpdateRasterizerState()
+{
+    gfxDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState);
+    gfxContext->RSSetState(rasterizerState.Get());
+}
+
 
 
 
