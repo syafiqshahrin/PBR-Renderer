@@ -40,6 +40,6 @@ float4 main(VSOutput pIN) : SV_TARGET
 		}
 	}
 	IrradianceColor = PI * IrradianceColor * (1.0 / float(nrSamples));
-	return float4(pow(IrradianceColor.rgb, (1.0 / 2.2)), 1);
+	return float4(IrradianceColor.rgb, 1);
 }
 
