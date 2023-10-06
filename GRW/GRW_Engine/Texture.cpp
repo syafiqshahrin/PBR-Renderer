@@ -370,12 +370,12 @@ bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, D
     return false;
 }
 
-void TextureCube::BindTexture(Renderer* renderer, int bindslot) 
+void TextureCube::BindTexture(Renderer* renderer, int bindslot) const
 {
     renderer->gfxContext->PSSetShaderResources(bindslot, 1, TextureShaderView.GetAddressOf());
 }
 
-void TextureCube::BindAsRenderTarget(Renderer* renderer, int face)
+void TextureCube::BindAsRenderTarget(Renderer* renderer, int face) const
 {
     if (IsRenderTexture)
         renderer->gfxContext->OMSetRenderTargets(1, TextureRenderView[face].GetAddressOf(), nullptr);
@@ -397,7 +397,7 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
 
     Transform CamTransform;
 
-    PerspectiveCamera persCam(CamTransform, 90, 0.1f, 100000.0f, Vector2(1024, 1024));
+    PerspectiveCamera persCam(CamTransform, 90, 0.1f, 100000.0f, Vector2(TextureDesc.Width, TextureDesc.Height));
     Matrix4x4 ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
 
     struct buffer
@@ -412,7 +412,7 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
     buf.CreateBuffer(renderer);
     buf.BindBuffer(renderer, 1);
 
-    renderer->SetViewport(512, 512);
+    renderer->SetViewport(TextureDesc.Width, TextureDesc.Height);
     renderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
     renderer->UpdateRasterizerState();
     HDRI.BindTexture(renderer, 0);
@@ -445,6 +445,72 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
     renderer->SetViewport(wndw->GetWidth(), wndw->GetHeight());
     renderer->BindBackBufferAsRenderTarget();
     //this->BindTexture(renderer, 3);
+}
+
+void TextureCube::RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const& cubemap)
+{
+    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    cubeMesh.CreateMeshFromFile(renderer);
+    cubeMesh.BindMesh(0, renderer);
+
+    VertexShader hdrVertShader("../Shaders/PrefilterCubeMapVertShader.cso");
+    hdrVertShader.CreateShader(renderer);
+    PixelShader hdrPixShader("../Shaders/PrefilterCubeMapPixShader.cso");
+    hdrPixShader.CreateShader(renderer);
+
+    hdrVertShader.BindShader(renderer);
+    hdrPixShader.BindShader(renderer);
+
+    Transform CamTransform;
+
+    PerspectiveCamera persCam(CamTransform, 90, 0.1f, 100000.0f, Vector2(TextureDesc.Width, TextureDesc.Height));
+    Matrix4x4 ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
+
+    struct buffer
+    {
+        float VP[16];
+    };
+
+    CBuffer<buffer> buf;
+    ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
+    ViewP = ViewP.Transpose();
+    ViewP.GetMatrixFloatArray(buf.BufferData.VP);
+    buf.CreateBuffer(renderer);
+    buf.BindBuffer(renderer, 1);
+
+    renderer->SetViewport(TextureDesc.Width, TextureDesc.Width);
+    renderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
+    renderer->UpdateRasterizerState();
+    cubemap.BindTexture(renderer, 3);
+    Vector3 rots[6] =
+    {
+        Vector3(0.0f, 90.0f, 0.0f),
+        Vector3(0.0f, -90.0f, 0.0f),
+        Vector3(-90.0f, 0.0f, 0.0f),
+        Vector3(90.0f, 0.0f, 0.0f),
+        Vector3(0.0f, 0.0f, 0.0f),
+        Vector3(0.0f, 180.0f, 0.0f)
+    };
+
+    for (int i = 0; i < 6; i++)
+    {
+        this->BindAsRenderTarget(renderer, i);
+        CamTransform.SetRotation(rots[i]);
+        CamTransform.UpdateMatrix();
+
+        ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
+        ViewP = ViewP.Transpose();
+        ViewP.GetMatrixFloatArray(buf.BufferData.VP);
+        buf.UpdateBuffer(renderer);
+
+        renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+    }
+
+    renderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    renderer->UpdateRasterizerState();
+    renderer->SetViewport(wndw->GetWidth(), wndw->GetHeight());
+    renderer->BindBackBufferAsRenderTarget();
+    buf.UnbindBuffer(renderer, 1);
 }
 
 void TextureCube::ReleaseTexture()

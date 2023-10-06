@@ -132,13 +132,9 @@ int Application::ApplicationUpdate()
     RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
-    Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
+    Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/rural_asphalt_road_2k.hdr");
     HDRI.CreateTextureFromFile(AppRenderer);
-    //HDRI.BindTexture(AppRenderer, 0);
-    //Cubemap Texture loading
-    //TextureCube cubemap("C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_");
-    //cubemap.CreateTextureFromFile(AppRenderer);
-    //cubemap.BindTexture(AppRenderer, 3);
+
 #pragma endregion
 
 #pragma region Sampler Setup temp
@@ -267,6 +263,11 @@ int Application::ApplicationUpdate()
     genCubeMap.BindTexture(AppRenderer, 3);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
+    TextureCube PrefilteredCubeMap;
+    PrefilteredCubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
+    PrefilteredCubeMap.RenderPrefilteredCubeMap(AppRenderer, AppWindow, genCubeMap);
+    PrefilteredCubeMap.BindTexture(AppRenderer, 3);
+    //genCubeMap.BindTexture(AppRenderer, 3);
 #pragma endregion
 
 

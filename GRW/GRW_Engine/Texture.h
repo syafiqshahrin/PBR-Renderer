@@ -44,9 +44,10 @@ public:
 	~TextureCube();
 	bool CreateTextureFromFile(Renderer* renderer);
 	bool CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
-	void BindTexture(Renderer* renderer, int bindslot);
-	void BindAsRenderTarget(Renderer* renderer, int face);
+	void BindTexture(Renderer* renderer, int bindslot) const;
+	void BindAsRenderTarget(Renderer* renderer, int face) const;
 	void RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const &HDRI);
+	void RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const &cubemap);
 	void ReleaseTexture();
 private:
 	void LoadTextureFromFile();

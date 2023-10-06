@@ -30,7 +30,7 @@ cbuffer Cbuffer : register(b0)
 Texture2D DiffuseTex: register(t0);
 Texture2D NormTex: register(t1);
 Texture2D RMATex: register(t2);
-TextureCube Cubemap: register(t3);
+TextureCube IrradianceMap: register(t3);
 SamplerState samplerTest: register(s0);
 
 static const float PI = 3.14159265f;
@@ -41,6 +41,15 @@ float3 FresnelSchlick(float3 baseC, float metal, float3 v, float3 h)
 	float3 F0 = lerp(0.04, baseC.rgb, metal);
 	float p = pow(1 - max(dot(v, h), 0.0001), 5.0);
 	float3 F = F0 + (float3(1,1,1) - F0) * p;
+	return F;
+}
+
+float3 FresnelSchlickRoughness(float3 baseC, float metal, float roughness, float3 v, float3 n)
+{
+	// FresnelFactor using Fresnel-Schlick: F = F0 + (1 - F0) (1 - (dot(V, H))^5
+	float3 F0 = lerp(0.04, baseC.rgb, metal);
+	float p = pow(1 - clamp(dot(v, n), 0.0001, 1.0), 5.0);
+	float3 F = F0 + (max(1 - roughness, F0)- F0) * p;
 	return F;
 }
 
@@ -149,8 +158,8 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	//environment map temp
 	float3 R = reflect(-V, N);
-	float4 Sky = Cubemap.Sample(samplerTest, R.xyz);
-	//float4 Sky = Cubemap.Sample(samplerTest, pIN.posWS.xyz);
+	//float4 Sky = Cubemap.Sample(samplerTest, R.xyz);
+	float4 Ambient = IrradianceMap.Sample(samplerTest, Nv.xyz);
 
 	//for Directional Light
 	float3 L0 = normalize(lightData * -1) ;
@@ -215,6 +224,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	FinalLight = final;
 
 	//for point light
+	/*
 	F = FresnelSchlick(baseColor.rgb, m, V, H1);
 	K = DiffuseFract(F, m);
 
@@ -226,12 +236,23 @@ float4 main(VSOutput pIN) : SV_TARGET
 	final = BRDF * lightCol1.rgb * NDL1;
 	FinalLight += final; 
 	//FinalLight += final + pow(((Sky.rgb/PI) * (1-r)), 1); //with environment map hack/test/temp
-
+	*/
 	FinalLight = pow(FinalLight.rgb, (1.0 / 2.2));
 
+	//Diffuse Ambient term
+	float3 kS = FresnelSchlickRoughness(baseColor.rgb, m, r, V, N);
+	float3 kD = 1.0 - kS;
+	kD *= 1 - m;
+	float3 irradiance = IrradianceMap.Sample(samplerTest, N.xyz);
+	float3 iblDiffuse = irradiance * baseColor.rgb;
+	float3 ambient = (kD * iblDiffuse);
+
+
+	FinalLight += ambient;
+	
 	//Final Color
 	float4 color = float4(FinalLight.rgb,1);
-	float4 test = float4(Sky.rgb,1);
+	float4 test = float4(ambient.rgb,1);
 	return color;
 
 }

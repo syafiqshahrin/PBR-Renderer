@@ -16,6 +16,7 @@ public:
 	void UpdateBuffer(Renderer* renderer);
 	void BindBuffer(Renderer* renderer, int bindslot);
 	void CreateBuffer(Renderer* renderer);
+    void UnbindBuffer(Renderer* renderer, int bindslot);
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> ConstantBuffer;
 };
@@ -67,4 +68,11 @@ inline void CBuffer<T>::CreateBuffer(Renderer* renderer)
 
         DEBUG("Failed to create cbuffer:" << errorText);
     }
+}
+
+template<typename T>
+inline void CBuffer<T>::UnbindBuffer(Renderer* renderer, int bindslot)
+{
+    //renderer->gfxContext->VSSetConstantBuffers(bindslot, 1, nullptr);
+    //renderer->gfxContext->PSSetConstantBuffers(bindslot, 1, nullptr);
 }
