@@ -32,11 +32,12 @@ public:
 	GLTFMeshLoader(const char *FileAddress);
 	~GLTFMeshLoader();
 
-	void GetVertexPositions(std::vector<Vector3> & vPositions);
+	void GetVertexPositions(int submeshIndex, std::vector<Vector3> & vPositions);
 	void GetIndices(int submeshIndex, std::vector<unsigned int>& indices);
 	void GetNormals(int submeshIndex, std::vector<Vector3>& normals);
 	void GetUVs(int submeshIndex, std::vector<Vector2>& uvs);
 	void GetTangents(int submeshIndex, std::vector<Vector4>& tangent);
+	int GetSubmesh();
 private:
 	void LoadJSonFile();
 	void DecodeMeshData();

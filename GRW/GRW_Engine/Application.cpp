@@ -21,7 +21,9 @@
 #include "IMGUI/imgui_impl_dx11.h"
 #include "Texture.h"
 #include "Light.h"
-
+#include "Mesh.h"
+#include "CBuffer.h"
+#include "Shader.h"
 //#define STB_IMAGE_IMPLEMENTATION
 #include "Image/stb_image.h"
 
@@ -113,23 +115,26 @@ int Application::ApplicationUpdate()
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
-    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
     //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
-    Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
+    //Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
+    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
     DiffuseTex.CreateTextureFromFile(AppRenderer, false);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
+    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
     NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
-    //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
-    Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
+    Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
+    //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
     RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
+    Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
+    HDRI.CreateTextureFromFile(AppRenderer);
+    //HDRI.BindTexture(AppRenderer, 0);
     //Cubemap Texture loading
     //TextureCube cubemap("C:/Users/syafiq.shahrin/Downloads/cloudy/bluecloud_");
     //cubemap.CreateTextureFromFile(AppRenderer);
@@ -163,181 +168,23 @@ int Application::ApplicationUpdate()
     AppRenderer->gfxContext->PSSetSamplers(0, 1, SamplerState.GetAddressOf());
 #pragma endregion
 
-#pragma region Mesh Loading
+#pragma region Mesh Loading and mesh binding
 
-    //Mesh loading
 
-    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/Testgltf.gltf");
-    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/RoundedCylinder.gltf");
-    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
-    //GLTFMeshLoader meshLoader("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
-    GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
-    //GLTFMeshLoader meshLoader("E:/My Documents/Assets/Blender/FBX/CyclinderTest.gltf");
-
-    std::vector<Vector3> posArray;
-    meshLoader.GetVertexPositions(posArray);
-
-    DEBUG("positions: " << posArray.size());
-
-    /*
-    for (Vector3 v : posArray)
-    {
-        DEBUG(v.prnt().c_str());
-    }
-    */
-
-    std::vector<unsigned int> indArray;
-    meshLoader.GetIndices(0, indArray);
-
-    std::vector<Vector3> normArray;
-    meshLoader.GetNormals(0, normArray);
-
-    std::vector<Vector2> uvArray;
-    meshLoader.GetUVs(0, uvArray);
-
-    std::vector<Vector4> tanArray;
-    meshLoader.GetTangents(0, tanArray);
+    Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    sphereMesh.CreateMeshFromFile(AppRenderer);
 
     //
 #pragma endregion
 
 #pragma region Vertex and Pixel Shader setup temp
 
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
-    Microsoft::WRL::ComPtr <ID3DBlob> vshaderBlob;
-    //hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
-    hr = D3DReadFileToBlob(L"../Shaders/HDRConverterVertShader.cso", &vshaderBlob);
-    if (FAILED(hr))
-    {
-        std::cout << "Failed" << std::endl;
-    }
-    AppRenderer->gfxDevice->CreateVertexShader(vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), nullptr, &vertexShader);
-    AppRenderer->gfxContext->VSSetShader(vertexShader.Get(), nullptr, 0u);
-
-    //Create and bind pixel shader
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> pixShader;
-    Microsoft::WRL::ComPtr <ID3DBlob> pshaderBlob;
-    //hr = D3DReadFileToBlob(L"../Shaders/BasePixelShader.cso", &pshaderBlob);
-    hr = D3DReadFileToBlob(L"../Shaders/HDRConverterPixShader.cso", &pshaderBlob);
-    AppRenderer->gfxDevice->CreatePixelShader(pshaderBlob->GetBufferPointer(), pshaderBlob->GetBufferSize(), nullptr, &pixShader);
-    AppRenderer->gfxContext->PSSetShader(pixShader.Get(), nullptr, 0u);
-
-    //Create input layout and bind it to the context
-    Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayoutHandle;
-
-    D3D11_INPUT_ELEMENT_DESC inLayoutDesc[]
-    {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
-
-    hr = AppRenderer->gfxDevice->CreateInputLayout(inLayoutDesc, 5, vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), &inputLayoutHandle);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creatiing input layout" << errorText);
-
-        //return -1;
-    }
-    AppRenderer->gfxContext->IASetInputLayout(inputLayoutHandle.Get());
-#pragma endregion
-
-#pragma region Vertex and index buffer setup temp
-    //Create vertex buffer and Bind data to Input Assembler
-    struct vertex
-    {
-        vertex(Vector3 p, Vector3 n, Vector2 uv, Vector4 t, float r, float g, float b)
-        {
-
-            pos[0] = p.x;
-            pos[1] = p.y;
-            pos[2] = p.z;
-
-            norm[0] = n.x;
-            norm[1] = n.y;
-            norm[2] = n.z;
-
-            tan[0] = t.x;
-            tan[1] = t.y;
-            tan[2] = t.z;
-            tan[3] = t.w;
-
-            texc[0] = uv.x;
-            texc[1] = uv.y;
-
-            col[0] = r;
-            col[1] = g;
-            col[2] = b;
-            //col[3] = a;
-        }
-        //Vector3 p;
-        float pos[3] = {};
-        float norm[3] = {};
-        float texc[2] = {};
-        float col[3] = {};
-        float tan[4] = {};
-    };
-
-    std::vector<vertex> meshData;
-    for (int i = 0; i < posArray.size(); i++)
-    {
-        meshData.push_back(vertex(posArray[i], normArray[i], uvArray[i], tanArray[i], 0, 1, 0));
-    }
+    VertexShader baseVertShader("../Shaders/BaseVertexShader.cso");
+    baseVertShader.CreateShader(AppRenderer);
+    PixelShader basePixShader("../Shaders/BasePixelShader.cso");
+    basePixShader.CreateShader(AppRenderer);
 
 
-
-    Microsoft::WRL::ComPtr<ID3D11Buffer> vertBuffer;
-
-    D3D11_BUFFER_DESC verBufferDesc;
-    verBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    verBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    verBufferDesc.ByteWidth = sizeof(vertex) * meshData.size(); //size of the whole array
-    //verBufferDesc.StructureByteStride = sizeof(vertex); //stride of each vertex 
-    verBufferDesc.CPUAccessFlags = 0u;
-    verBufferDesc.MiscFlags = 0u;
-
-    D3D11_SUBRESOURCE_DATA srd;
-    srd.pSysMem = meshData.data();
-
-    hr = AppRenderer->gfxDevice->CreateBuffer(&verBufferDesc, &srd, &vertBuffer);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creatiing vertex buffer" << errorText);
-
-        //return -1;
-    }
-
-
-    const UINT stride = sizeof(vertex);
-    const UINT offset = 0u;
-    AppRenderer->gfxContext->IASetVertexBuffers(0u, 1u, vertBuffer.GetAddressOf(), &stride, &offset);
-
-
-    //create index buffer and bind to input assembler
-    Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
-
-
-    D3D11_BUFFER_DESC indBufferDesc;
-    indBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indBufferDesc.ByteWidth = sizeof(unsigned int) * indArray.size(); //size of the whole array
-    //indBufferDesc.StructureByteStride = sizeof(UINT); //stride of each vertex 
-    indBufferDesc.CPUAccessFlags = 0u;
-    indBufferDesc.MiscFlags = 0u;
-
-    srd.pSysMem = indArray.data();
-
-    AppRenderer->gfxDevice->CreateBuffer(&indBufferDesc, &srd, &indexBuffer);
-    AppRenderer->gfxContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-    //set primitive topology type
-    AppRenderer->gfxContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 #pragma endregion
 
 #pragma region Scene stuff
@@ -371,16 +218,14 @@ int Application::ApplicationUpdate()
     
 #pragma region Cbuffer setup temp
     ///cbuffer stuff
-    Microsoft::WRL::ComPtr<ID3D11Buffer> constBuffer;
 
-    struct Cbuffer
+    struct cbuffer
     {
         Vector4 time;
         float MVP[16];
         float MW[16];
         float MC[16];
         float MNorm[16];
-        float VP[16];
         Vector4 light;
         Vector4 Ambient;
         Vector4 CamPosWS;
@@ -388,124 +233,48 @@ int Application::ApplicationUpdate()
         Vector4 PointLightColor;
     };
 
-    Cbuffer cbuffer;
-    cbuffer.time.x = 0;
-    cbuffer.light = lightDirNorm.GetVec4(false);
-    cbuffer.Ambient = Vector4(83.0f / 255, 83.0f / 255, 133.0f / 255.0f, 1);
-    cbuffer.CamPosWS = CamTes.GetPosition().GetVec4(true);
-    cbuffer.PointLightPos = pointLight1.GetPosition().GetVec4(true);
-    cbuffer.PointLightPos.w = pointLight1.GetLightRadius();
-    cbuffer.PointLightColor = pointLight1.GetColor().GetVec4(false);
-    cbuffer.PointLightColor.w = pointLight1.GetIntensity();
+    CBuffer<cbuffer> buffer;
+    buffer.BufferData.time.x = 0;
+    buffer.BufferData.light = lightDirNorm.GetVec4(false);
+    buffer.BufferData.Ambient = Vector4(83.0f / 255, 83.0f / 255, 133.0f / 255.0f, 1);
+    buffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
+    buffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
+    buffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
+    buffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
+    buffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
     Matrix4x4 MWorld = cube.GetModelMatrix();
     Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
 
     Matrix4x4 MView = CamTes.GetModelMatrix();
-    
-  
 
     MWorld.Transpose();
     MView.Transpose();
 
-    MVP.GetMatrixFloatArray(cbuffer.MVP);
-    MWorld.GetMatrixFloatArray(cbuffer.MW);
-    MView.GetMatrixFloatArray(cbuffer.MC);
-    MNormal.GetMatrixFloatArray(cbuffer.MNorm);
+    MVP.GetMatrixFloatArray(buffer.BufferData.MVP);
+    MWorld.GetMatrixFloatArray(buffer.BufferData.MW);
+    MView.GetMatrixFloatArray(buffer.BufferData.MC);
+    MNormal.GetMatrixFloatArray(buffer.BufferData.MNorm);
 
-    PerspectiveCamera pCam2(CamTes, 90, 0.1f, 100000.0f, Vector2(1024, 1024));
-    Matrix4x4 ViewP = pCam2.GetCameraProjectionMatrix() * pCam2.GetCameraViewMatrix();
-    ViewP = ViewP.Transpose();
-    ViewP.GetMatrixFloatArray(cbuffer.VP);
-
-    D3D11_BUFFER_DESC cbDesc;
-    cbDesc.ByteWidth = sizeof(Cbuffer);
-    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbDesc.MiscFlags = 0;
-    cbDesc.StructureByteStride = 0;
-
-    D3D11_SUBRESOURCE_DATA data;
-    data.pSysMem = &cbuffer;
-    data.SysMemPitch = 0;
-    data.SysMemSlicePitch = 0;
-
-    hr = AppRenderer->gfxDevice->CreateBuffer(&cbDesc, &data, &constBuffer);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-
-        DEBUG("Failed to create cbuffer:" << errorText);
-    }
-
-    AppRenderer->gfxContext->VSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
-    AppRenderer->gfxContext->PSSetConstantBuffers(0, 1, constBuffer.GetAddressOf());
+    buffer.CreateBuffer(AppRenderer);
+    buffer.BindBuffer(AppRenderer, 0);
 #pragma endregion
 
 
 #pragma region Generate cubemap test
-    //Generating cube map test
-   //face right
     TextureCube genCubeMap;
     genCubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
-    AppRenderer->SetViewport(512, 512);
-    AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
-    AppRenderer->UpdateRasterizerState();
-    Vector3 rots[6] =
-    {
-        Vector3(0.0f, 90.0f, 0.0f),
-        Vector3(0.0f, -90.0f, 0.0f),
-        Vector3(-90.0f, 0.0f, 0.0f),
-        Vector3(90.0f, 0.0f, 0.0f),
-        Vector3(0.0f, 0.0f, 0.0f),
-        Vector3(0.0f, 180.0f, 0.0f)
-    };
-
-    for (int i = 0; i < 6; i++)
-    {
-        genCubeMap.BindAsRenderTarget(AppRenderer, i);
-        CamTes.SetRotation(rots[i]);
-        CamTes.UpdateMatrix();
-
-        ViewP = pCam2.GetCameraProjectionMatrix() * pCam2.GetCameraViewMatrix();
-        ViewP = ViewP.Transpose();
-        ViewP.GetMatrixFloatArray(cbuffer.VP);
-
-        D3D11_MAPPED_SUBRESOURCE mappedResource;
-        AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-        memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-        AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
-
-        //AppRenderer->ClearBackbuffer();
-        AppRenderer->gfxContext->DrawIndexed(indArray.size(), 0, 0);
-    }
-
-    AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
-    AppRenderer->UpdateRasterizerState();
-    AppRenderer->SetViewport(1920, 1080);
-    AppRenderer->BindBackBufferAsRenderTarget();
+    genCubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, HDRI);
     genCubeMap.BindTexture(AppRenderer, 3);
+    DiffuseTex.BindTexture(AppRenderer, 0);
 
 #pragma endregion
 
 
 #pragma region Vertex and Pixel Shader switch
     ///*
-    hr = D3DReadFileToBlob(L"../Shaders/BaseVertexShader.cso", &vshaderBlob);
-    //hr = D3DReadFileToBlob(L"../Shaders/HDRConverterVertShader.cso", &vshaderBlob);
-    if (FAILED(hr))
-    {
-        std::cout << "Failed" << std::endl;
-    }
-    AppRenderer->gfxDevice->CreateVertexShader(vshaderBlob->GetBufferPointer(), vshaderBlob->GetBufferSize(), nullptr, &vertexShader);
-    AppRenderer->gfxContext->VSSetShader(vertexShader.Get(), nullptr, 0u);
-
-    //Create and bind pixel shader
-    hr = D3DReadFileToBlob(L"../Shaders/BasePixelShader.cso", &pshaderBlob);
-    //hr = D3DReadFileToBlob(L"../Shaders/HDRConverterPixShader.cso", &pshaderBlob);
-    AppRenderer->gfxDevice->CreatePixelShader(pshaderBlob->GetBufferPointer(), pshaderBlob->GetBufferSize(), nullptr, &pixShader);
-    AppRenderer->gfxContext->PSSetShader(pixShader.Get(), nullptr, 0u);
+    baseVertShader.BindShader(AppRenderer);
+    basePixShader.BindShader(AppRenderer);
+    sphereMesh.BindMesh(0, AppRenderer);
     //*/
 #pragma endregion
 
@@ -534,34 +303,29 @@ int Application::ApplicationUpdate()
         
         MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
-        MVP.GetMatrixFloatArray(cbuffer.MVP);
+        MVP.GetMatrixFloatArray(buffer.BufferData.MVP);
 
         MWorld = cube.GetModelMatrix();
         MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
         MView = CamTes.GetModelMatrix().Transpose();
         
         MWorld = MWorld.Transpose();
-        MWorld.GetMatrixFloatArray(cbuffer.MW);
-        MView.GetMatrixFloatArray(cbuffer.MC);
-        MNormal.GetMatrixFloatArray(cbuffer.MNorm);
+        MWorld.GetMatrixFloatArray(buffer.BufferData.MW);
+        MView.GetMatrixFloatArray(buffer.BufferData.MC);
+        MNormal.GetMatrixFloatArray(buffer.BufferData.MNorm);
 
-        cbuffer.CamPosWS = CamTes.GetPosition().GetVec4(true);
-        cbuffer.time.x += deltaTime;
-        cbuffer.light = lightDirNorm.GetVec4(false);
+        buffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
+        buffer.BufferData.time.x += deltaTime;
+        buffer.BufferData.light = lightDirNorm.GetVec4(false);
 
-        cbuffer.PointLightPos = pointLight1.GetPosition().GetVec4(true);
-        cbuffer.PointLightPos.w = pointLight1.GetLightRadius();
-        cbuffer.PointLightColor = pointLight1.GetColor().GetVec4(false);
-        cbuffer.PointLightColor.w = pointLight1.GetIntensity();
-
-        //update constant buffer data on gpu 
-        D3D11_MAPPED_SUBRESOURCE mappedResource;
-        AppRenderer->gfxContext->Map(constBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-        memcpy(mappedResource.pData, &cbuffer, sizeof(cbuffer));
-        AppRenderer->gfxContext->Unmap(constBuffer.Get(), 0);
+        buffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
+        buffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
+        buffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
+        buffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
+        buffer.UpdateBuffer(AppRenderer);
 
         AppRenderer->ClearBackbuffer();
-        AppRenderer->gfxContext->DrawIndexed(indArray.size() , 0, 0);
+        AppRenderer->gfxContext->DrawIndexed(sphereMesh.GetIndexListSize(0), 0, 0);
 
         //ImGui Stuff
 
@@ -585,7 +349,7 @@ int Application::ApplicationUpdate()
 
             float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
 
-            float* ac[3] = { &cbuffer.Ambient.x, &cbuffer.Ambient.x , &cbuffer.Ambient.z};
+            float* ac[3] = { &buffer.BufferData.Ambient.x, &buffer.BufferData.Ambient.x , &buffer.BufferData.Ambient.z};
 
             ImGui::Begin("Transforms");                         
 

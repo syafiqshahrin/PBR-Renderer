@@ -139,10 +139,6 @@ void Renderer::SetViewport(int w, int h)
 {
     BaseViewport.Width = w;
     BaseViewport.Height = h;
-    BaseViewport.MinDepth = 0.0f;
-    BaseViewport.MaxDepth = 1.0f;
-    BaseViewport.TopLeftX = 0.0f;
-    BaseViewport.TopLeftY = 0.0f;
 
     gfxContext->RSSetViewports(1, &BaseViewport);
 }

@@ -2,8 +2,16 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "Image/stb_image.h"
 #include "Renderer.h"
+#include "Window.h"
 #include "Debug.h"
 #include <comdef.h>
+#include "Shader.h"
+#include "Mesh.h"
+#include "Camera.h"
+#include "Transform.h"
+#include "Matrix.h"
+#include "Vector.h"
+#include "CBuffer.h"
 
 Texture2D::Texture2D()
 {
@@ -180,12 +188,12 @@ bool Texture2D::CreateRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMA
 
 }
 
-void Texture2D::BindTexture(Renderer* renderer, int bindslot)
+void Texture2D::BindTexture(Renderer* renderer, int bindslot) const
 {
     renderer->gfxContext->PSSetShaderResources(bindslot, 1, TextureShaderView.GetAddressOf());
 }
 
-void Texture2D::BindAsRenderTarget(Renderer* renderer)
+void Texture2D::BindAsRenderTarget(Renderer* renderer) const
 {
     if(IsRenderTexture)
         renderer->gfxContext->OMSetRenderTargets(1, TextureRenderView.GetAddressOf(), nullptr);
@@ -362,7 +370,7 @@ bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, D
     return false;
 }
 
-void TextureCube::BindTexture(Renderer* renderer, int bindslot)
+void TextureCube::BindTexture(Renderer* renderer, int bindslot) 
 {
     renderer->gfxContext->PSSetShaderResources(bindslot, 1, TextureShaderView.GetAddressOf());
 }
@@ -371,6 +379,72 @@ void TextureCube::BindAsRenderTarget(Renderer* renderer, int face)
 {
     if (IsRenderTexture)
         renderer->gfxContext->OMSetRenderTargets(1, TextureRenderView[face].GetAddressOf(), nullptr);
+}
+
+void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const &HDRI)
+{
+    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    cubeMesh.CreateMeshFromFile(renderer);
+    cubeMesh.BindMesh(0, renderer);
+
+    VertexShader hdrVertShader("../Shaders/HDRConverterVertShader.cso");
+    hdrVertShader.CreateShader(renderer);
+    PixelShader hdrPixShader("../Shaders/HDRConverterPixShader.cso");
+    hdrPixShader.CreateShader(renderer);
+
+    hdrVertShader.BindShader(renderer);
+    hdrPixShader.BindShader(renderer);
+
+    Transform CamTransform;
+
+    PerspectiveCamera persCam(CamTransform, 90, 0.1f, 100000.0f, Vector2(1024, 1024));
+    Matrix4x4 ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
+
+    struct buffer
+    {
+        float VP[16];
+    };
+
+    CBuffer<buffer> buf;
+    ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
+    ViewP = ViewP.Transpose();
+    ViewP.GetMatrixFloatArray(buf.BufferData.VP);
+    buf.CreateBuffer(renderer);
+    buf.BindBuffer(renderer, 1);
+
+    renderer->SetViewport(512, 512);
+    renderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
+    renderer->UpdateRasterizerState();
+    HDRI.BindTexture(renderer, 0);
+    Vector3 rots[6] =
+    {
+        Vector3(0.0f, 90.0f, 0.0f),
+        Vector3(0.0f, -90.0f, 0.0f),
+        Vector3(-90.0f, 0.0f, 0.0f),
+        Vector3(90.0f, 0.0f, 0.0f),
+        Vector3(0.0f, 0.0f, 0.0f),
+        Vector3(0.0f, 180.0f, 0.0f)
+    };
+
+    for (int i = 0; i < 6; i++)
+    {
+        this->BindAsRenderTarget(renderer, i);
+        CamTransform.SetRotation(rots[i]);
+        CamTransform.UpdateMatrix();
+
+        ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
+        ViewP = ViewP.Transpose();
+        ViewP.GetMatrixFloatArray(buf.BufferData.VP);
+        buf.UpdateBuffer(renderer);
+
+        renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+    }
+
+    renderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    renderer->UpdateRasterizerState();
+    renderer->SetViewport(wndw->GetWidth(), wndw->GetHeight());
+    renderer->BindBackBufferAsRenderTarget();
+    //this->BindTexture(renderer, 3);
 }
 
 void TextureCube::ReleaseTexture()

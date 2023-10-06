@@ -13,19 +13,9 @@ struct VSOutput
 	float3 localPos : LPOSITION;
 };
 
-cbuffer Cbuffer : register(b0)
+cbuffer Cbuffer : register(b1)
 {
-	float4 time;
-	matrix MVP;
-	matrix MW;
-	matrix MC;
-	matrix MNorm;
 	matrix MViewProj;
-	float3 lightData;
-	float4 Ambient;
-	float4 CamWS;
-	float4 PLightPos;
-	float4 PLightCol;
 }
 
 VSOutput main(VSInput vIn)

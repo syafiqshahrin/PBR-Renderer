@@ -6,6 +6,7 @@
 #include <string>
 
 class Renderer;
+class Window;
 
 class Texture2D
 {
@@ -15,8 +16,8 @@ public:
 	~Texture2D();
 	bool CreateTextureFromFile(Renderer* renderer, bool genMips = true, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
 	bool CreateRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
-	void BindTexture(Renderer* renderer, int bindslot);
-	void BindAsRenderTarget(Renderer* renderer);
+	void BindTexture(Renderer* renderer, int bindslot) const;
+	void BindAsRenderTarget(Renderer* renderer) const;
 	void ReleaseTexture();
 private:
 	void LoadTextureFromFile();
@@ -45,6 +46,7 @@ public:
 	bool CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
 	void BindTexture(Renderer* renderer, int bindslot);
 	void BindAsRenderTarget(Renderer* renderer, int face);
+	void RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const &HDRI);
 	void ReleaseTexture();
 private:
 	void LoadTextureFromFile();

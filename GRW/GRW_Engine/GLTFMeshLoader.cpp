@@ -25,30 +25,29 @@ GLTFMeshLoader::~GLTFMeshLoader()
 	DEBUG("Destructor Called");
 }
 
-void GLTFMeshLoader::GetVertexPositions(std::vector<Vector3> & vPositions)
+void GLTFMeshLoader::GetVertexPositions(int submeshIndex, std::vector<Vector3> & vPositions)
 {
 	std::vector<float> f;
 	
-	for (int i = 0; i < MeshInfo.submeshes; i++)
+
+	int start = MeshInfo.PosStartOffset[submeshIndex];
+	int maxByteLength = start + MeshInfo.PosByteLength[submeshIndex];
+
+
+	for (unsigned int j = start, k = 0; j < maxByteLength; j += 4, k++)
 	{
-		int start = MeshInfo.PosStartOffset[i];
-		int maxByteLength = start + MeshInfo.PosByteLength[i];
+		std::byte fl[4];
+		fl[0] = MeshDecodedData[j];
+		fl[1] = MeshDecodedData[j+1];
+		fl[2] = MeshDecodedData[j+2];
+		fl[3] = MeshDecodedData[j+3];
 
-
-		for (unsigned int j = start, k = 0; j < maxByteLength; j += 4, k++)
-		{
-			std::byte fl[4];
-			fl[0] = MeshDecodedData[j];
-			fl[1] = MeshDecodedData[j+1];
-			fl[2] = MeshDecodedData[j+2];
-			fl[3] = MeshDecodedData[j+3];
-
-			f.push_back(0);
-			std::memcpy(&f[k], fl, sizeof(float));
-			//DEBUG("F: " << f[k]);
-		}
-
+		f.push_back(0);
+		std::memcpy(&f[k], fl, sizeof(float));
+		//DEBUG("F: " << f[k]);
 	}
+
+	
 
 	for (int i = 0, k = 0; i < f.size(); i+=3, k++)
 	{
@@ -166,6 +165,11 @@ void GLTFMeshLoader::GetTangents(int submeshIndex, std::vector<Vector4>& tangent
 		tangent.push_back(Vector4(f[i], f[i + 1], f[i + 2], f[i + 3]));
 	}
 	//DEBUG(tangent.size());
+}
+
+int GLTFMeshLoader::GetSubmesh()
+{
+	return MeshInfo.submeshes;
 }
 
 void GLTFMeshLoader::LoadJSonFile()
