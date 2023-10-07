@@ -17,12 +17,15 @@ Texture2D::Texture2D()
 {
     FilePath = "";
     IsRenderTexture = true;
+    HDR = false;
 }
 
-Texture2D::Texture2D(std::string filepath)
+Texture2D::Texture2D(std::string filepath, int c, bool hdr)
 {
 	FilePath = filepath;
     IsRenderTexture = false;
+    component = c;
+    HDR = hdr;
 }
 
 Texture2D::~Texture2D()
@@ -30,7 +33,7 @@ Texture2D::~Texture2D()
     ReleaseTexture();
 }
 
-bool Texture2D::CreateTextureFromFile(Renderer* renderer, bool genMips, DXGI_FORMAT format)
+bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel,  bool genMips, DXGI_FORMAT format)
 {
     IsRenderTexture = false;
     LoadTextureFromFile();
@@ -52,8 +55,16 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, bool genMips, DXGI_FOR
 
         //only need subresource if not creating texture w generated mips
         D3D11_SUBRESOURCE_DATA texSubResourceData;
-        texSubResourceData.pSysMem = TextureData;
-        texSubResourceData.SysMemPitch = RowPitch;
+        if (HDR)
+        {
+            texSubResourceData.pSysMem = TextureData ;
+
+        }
+        else
+        {
+            texSubResourceData.pSysMem = TextureData;
+        }
+        texSubResourceData.SysMemPitch = TexDimensionsW * component * (bitsperpixel / 8);
         texSubResourceData.SysMemSlicePitch = 0;
 
         HRESULT hr = renderer->gfxDevice->CreateTexture2D(&TextureDesc, &texSubResourceData, &Texture2DResource);
@@ -126,13 +137,20 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, bool genMips, DXGI_FOR
 
 
     //generate mips
-   
-    free(TextureData);
+    if (HDR)
+    {
+        free(TextureDataF);
+    }
+    else
+    {
+        free(TextureData);
+    }
+    
 
 	return true;
 }
 
-bool Texture2D::CreateRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMAT format)
+bool Texture2D::CreateRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel, int c, DXGI_FORMAT format)
 {
     IsRenderTexture = true;
 
@@ -211,9 +229,17 @@ void Texture2D::ReleaseTexture()
 
 void Texture2D::LoadTextureFromFile()
 {
-    stbi_set_flip_vertically_on_load(true);
-    TextureData = stbi_load(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, 4);
-    RowPitch = TexDimensionsW * 4;
+    if (HDR)
+    {
+        stbi_set_flip_vertically_on_load(true);
+        //TextureDataF = stbi_loadf(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+        TextureData = stbi_load(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+    }
+    else
+    {
+        TextureData = stbi_load(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+    }
+    RowPitch = TexDimensionsW * component;
 }
 
 
@@ -223,12 +249,15 @@ TextureCube::TextureCube()
 {
     PartialFilePath = "";
     IsRenderTexture = false;
+    HDR = false;
 }
 
-TextureCube::TextureCube(std::string parfilepath)
+TextureCube::TextureCube(std::string parfilepath, int c, bool hdr)
 {
     PartialFilePath = parfilepath;
     IsRenderTexture = false;
+    component = c;
+    HDR = hdr;
 }
 
 TextureCube::~TextureCube()
@@ -236,7 +265,7 @@ TextureCube::~TextureCube()
     ReleaseTexture();
 }
 
-bool TextureCube::CreateTextureFromFile(Renderer* renderer)
+bool TextureCube::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, DXGI_FORMAT format)
 {
     IsRenderTexture = false;
     HRESULT hr;
@@ -246,7 +275,7 @@ bool TextureCube::CreateTextureFromFile(Renderer* renderer)
     TextureDesc.Height = TexDimensionsH;
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 6;
-    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    TextureDesc.Format = format;
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
     TextureDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -259,7 +288,7 @@ bool TextureCube::CreateTextureFromFile(Renderer* renderer)
     for (int i = 0; i < 6; i++)
     {
         cubemapSubResourceData[i].pSysMem = TextureData[i];
-        cubemapSubResourceData[i].SysMemPitch = RowPitch;
+        cubemapSubResourceData[i].SysMemPitch = RowPitch * (bitsperpixel / 8);
         cubemapSubResourceData[i].SysMemSlicePitch = 0;
     }
 
@@ -292,14 +321,21 @@ bool TextureCube::CreateTextureFromFile(Renderer* renderer)
     //freeing texture data from cpu side
     for (int i = 0; i < 6; i++)
     {
-        free(TextureData[i]);
+        if (HDR)
+        {
+            free(TextureDataF[i]);
+        }
+        else
+        {
+            free(TextureData[i]);
+        }
     }
     //free(TextureData);
 
     return true;
 }
 
-bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, DXGI_FORMAT format)
+bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel, int c, DXGI_FORMAT format)
 {
 
     //Fill out tex desc
@@ -313,7 +349,7 @@ bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, D
     TextureDesc.Height = h;
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 6;
-    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    TextureDesc.Format = format;
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
     TextureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -383,7 +419,8 @@ void TextureCube::BindAsRenderTarget(Renderer* renderer, int face) const
 
 void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const &HDRI)
 {
-    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
 
@@ -449,7 +486,8 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
 
 void TextureCube::RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const& cubemap)
 {
-    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
 
@@ -523,8 +561,15 @@ void TextureCube::LoadTextureFromFile()
 {
     for (int i = 0; i < 6; i++)
     {
-        std::string completePath = PartialFilePath + std::to_string(i) + ".jpg"; //probably change to png
-        TextureData[i] = stbi_load(completePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, 4);
+        std::string completePath = PartialFilePath + std::to_string(i) + ".png"; //probably change to png
+        if (HDR)
+        {
+            TextureDataF[i] = stbi_loadf(completePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+        }
+        else
+        {
+            TextureData[i] = stbi_load(completePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+        }
     }
-    RowPitch = TexDimensionsW * 4;
+    RowPitch = TexDimensionsW * component;
 }

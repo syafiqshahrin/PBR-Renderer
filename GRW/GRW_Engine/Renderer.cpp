@@ -30,7 +30,7 @@ bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, 
     SwapChainDesc.SampleDesc.Quality = 0;
     SwapChainDesc.Windowed = Windowed;
 
-    hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, FeatureLevel, 1, D3D11_SDK_VERSION, &SwapChainDesc, &gfxSwapChain, &gfxDevice, &FeatureLevelSupported, &gfxContext);
+    hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_DEBUG, FeatureLevel, 1, D3D11_SDK_VERSION, &SwapChainDesc, &gfxSwapChain, &gfxDevice, &FeatureLevelSupported, &gfxContext);
     if (FAILED(hr))
     {
         _com_error error(hr);

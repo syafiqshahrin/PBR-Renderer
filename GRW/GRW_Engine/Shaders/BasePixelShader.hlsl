@@ -9,7 +9,6 @@ struct VSOutput
 	float2 texcoord0 : TEXCOORD0;
 	float3 T : TANGENTWS;
 	float3 N : NORMALWS;
-	float3 B : BITANWS;
 };
 
 cbuffer Cbuffer : register(b0)
@@ -121,29 +120,15 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float timeScaled = time.x * 0.01;
 	
 	//Can move to cbuffer later on
-	float lightIntensity = 3;
+	float lightIntensity = 1;
 	float4 lightCol = float4(1,1,1,1) * lightIntensity;
 
 	//Normal and Tangent
-	//float3x3 NormalMatrix = (float3x3)MNorm;
-	//float3 normalWS = mul(NormalMatrix, pIN.norm);
-	
-	float4 tan = pIN.tangent;
-	float3 bitan = cross(pIN.norm, tan.xyz) * tan.w;
-	//float3 B = normalize(mul(MW, float4(bitan.xyz, 0)).xyz);
-	float3 B = normalize(mul(MNorm, bitan));
+	float sign = pIN.tangent.w < 0 ? -1 : 1;
+	float3 T = pIN.T;
+	float3 Nv = pIN.N;
+	float3 B = cross(Nv, T);
 
-
-
-	float3 T = normalize(pIN.T);
-	float3 Nv = normalize(pIN.N);
-	//float3 B = normalize(pIN.B);
-
-	float3x3 Mtbn = {
-		T.x, T.y, T.z,
-		B.x, B.y, B.z,
-		Nv.x, Nv.y, Nv.z
-	};
 
 	//Textures
 	float2 uv = pIN.texcoord0 * 2;
@@ -153,13 +138,13 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 
 	//Lighting Vectors
-	float3 N = normalize(mul(transpose(Mtbn), texNorm.xyz));
+	float3 N = normalize(texNorm.x * T + texNorm.y * B + texNorm.z * Nv);
 	float3 V = normalize(CamWS.rgb - pIN.posWS.xyz);
 
 	//environment map temp
 	float3 R = reflect(-V, N);
 	//float4 Sky = Cubemap.Sample(samplerTest, R.xyz);
-	float4 Ambient = IrradianceMap.Sample(samplerTest, Nv.xyz);
+	//float4 Ambient = IrradianceMap.Sample(samplerTest, Nv.xyz);
 
 	//for Directional Light
 	float3 L0 = normalize(lightData * -1) ;
@@ -224,7 +209,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	FinalLight = final;
 
 	//for point light
-	/*
+	
 	F = FresnelSchlick(baseColor.rgb, m, V, H1);
 	K = DiffuseFract(F, m);
 
@@ -236,14 +221,15 @@ float4 main(VSOutput pIN) : SV_TARGET
 	final = BRDF * lightCol1.rgb * NDL1;
 	FinalLight += final; 
 	//FinalLight += final + pow(((Sky.rgb/PI) * (1-r)), 1); //with environment map hack/test/temp
-	*/
+	
+	//FinalLight = pow(FinalLight.rgb, (1.0 / 2.2));
 	FinalLight = pow(FinalLight.rgb, (1.0 / 2.2));
 
 	//Diffuse Ambient term
 	float3 kS = FresnelSchlickRoughness(baseColor.rgb, m, r, V, N);
 	float3 kD = 1.0 - kS;
 	kD *= 1 - m;
-	float3 irradiance = IrradianceMap.Sample(samplerTest, N.xyz);
+	float3 irradiance = IrradianceMap.Sample(samplerTest, pIN.posWS.xyz);
 	float3 iblDiffuse = irradiance * baseColor.rgb;
 	float3 ambient = (kD * iblDiffuse);
 
@@ -252,7 +238,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	
 	//Final Color
 	float4 color = float4(FinalLight.rgb,1);
-	float4 test = float4(ambient.rgb,1);
+	float4 test = float4(irradiance.xyz,1);
 	return color;
 
 }

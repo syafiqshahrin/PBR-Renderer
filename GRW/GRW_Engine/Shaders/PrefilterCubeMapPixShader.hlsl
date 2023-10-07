@@ -27,7 +27,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 Right = normalize(cross(Up, SampleDirection));
 	Up = normalize(cross(SampleDirection, Right));
 
-	float sampleDelta = 0.01;
+	float sampleDelta = 0.005;
 	float nrSamples = 0.0;
 	for (float p = 0.0; p < 2.0 * PI; p += sampleDelta)
 	{
@@ -35,11 +35,12 @@ float4 main(VSOutput pIN) : SV_TARGET
 		{
 			float3 tangentDir = float3(sin(t) * cos(p), sin(t) * sin(p), cos(t));
 			float3 worldDir = (tangentDir.x * Right) + (tangentDir.y * Up) + (tangentDir.z * SampleDirection);
-			IrradianceColor += genCubeMap.Sample(samplerTest, worldDir).rgb * cos(t) * sin(p) ;
+			IrradianceColor += genCubeMap.Sample(samplerTest, worldDir).rgb * cos(t) * sin(t) ;
 			nrSamples+= 1.0;
 		}
 	}
 	IrradianceColor = PI * IrradianceColor * (1.0 / float(nrSamples));
+	IrradianceColor = pow(IrradianceColor.rgb, (1.0 / 2.2));
 	return float4(IrradianceColor.rgb, 1);
 }
 

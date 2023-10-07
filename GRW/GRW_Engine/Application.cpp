@@ -114,26 +114,30 @@ int Application::ApplicationUpdate()
 #pragma region Texture Loading and Setup
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
-    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
+    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
     //Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
-    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
-    DiffuseTex.CreateTextureFromFile(AppRenderer, false);
+    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
+    DiffuseTex.CreateTextureFromFile(AppRenderer, 8, true, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
     NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
-    Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
+    //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
     //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
+    Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png");
     RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
-    Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/rural_asphalt_road_2k.hdr");
-    HDRI.CreateTextureFromFile(AppRenderer);
+    //Texture2D HDRI("E:/My Documents/Downloads/newport_loft.hdr",4, true);
+    //Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
+    Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
+    DEBUG("HDRI");
+    HDRI.CreateTextureFromFile(AppRenderer, 8, false);
 
 #pragma endregion
 
@@ -167,8 +171,17 @@ int Application::ApplicationUpdate()
 #pragma region Mesh Loading and mesh binding
 
 
-    Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    //Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
+    //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
+    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/CubicCylinder.gltf");
+    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/Donut.gltf");
+    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/BarrelTest.gltf");
+    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     sphereMesh.CreateMeshFromFile(AppRenderer);
+    
+    Mesh Skybox("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
+    Skybox.CreateMeshFromFile(AppRenderer);
 
     //
 #pragma endregion
@@ -179,6 +192,11 @@ int Application::ApplicationUpdate()
     baseVertShader.CreateShader(AppRenderer);
     PixelShader basePixShader("../Shaders/BasePixelShader.cso");
     basePixShader.CreateShader(AppRenderer);
+
+    VertexShader SkyboxVertShader("../Shaders/SkyboxVertShader.cso");
+    SkyboxVertShader.CreateShader(AppRenderer);
+    PixelShader SkyboxPixShader("../Shaders/SkyboxPixShader.cso");
+    SkyboxPixShader.CreateShader(AppRenderer);
 
 
 #pragma endregion
@@ -191,16 +209,27 @@ int Application::ApplicationUpdate()
     CamTes.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
     OrthoCamera cam(CamTes, Vector3(-1, -1, 0.0f), Vector3(1, 1, 1), Vector2(1024, 1024));
-    PerspectiveCamera pCam(CamTes, 90, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
+    PerspectiveCamera pCam(CamTes, 60, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
 
     Transform cube;
-    cube.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    cube.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
     cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
     cube.SetScale(Vector3(1.f, 1.f, 1.f));
     cube.UpdateMatrix();
 
-    Matrix4x4 MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
+    Transform Skysphere;
+    Skysphere.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    Skysphere.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+    Skysphere.SetScale(Vector3(1.f, 1.f, 1.f));
+    Skysphere.UpdateMatrix();
 
+    Matrix4x4 ViewProj = pCam.GetCameraProjectionMatrix() * pCam.GetCameraViewMatrix().GetMat3x3().GetMat4x4();
+    ViewProj = ViewProj.Transpose();
+    Matrix4x4 MSkyWorld = Skysphere.GetModelMatrix();
+    MSkyWorld = MSkyWorld.Transpose();
+
+
+    Matrix4x4 MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
     MVP = MVP.Transpose();
 
     Vector3 lightDirNorm = Vector3::zero();
@@ -209,7 +238,7 @@ int Application::ApplicationUpdate()
     Transform pLight;
     pLight.SetPosition(Vector3(-3.0f, 0.0f, 5.0f));
     Vector3 plColor = Vector3(0.8f, 0.0f, 0.6f);
-    PointLight pointLight1(pLight, 10.0f, plColor, 4.0f);
+    PointLight pointLight1(pLight, 5.0f, plColor, 4.0f);
 #pragma endregion
     
 #pragma region Cbuffer setup temp
@@ -253,6 +282,20 @@ int Application::ApplicationUpdate()
 
     buffer.CreateBuffer(AppRenderer);
     buffer.BindBuffer(AppRenderer, 0);
+
+    struct skyboxBuffer
+    {
+        float MViewP[16];
+        float MW[16];
+    };
+
+    CBuffer<skyboxBuffer> skybuffer;
+    ViewProj.GetMatrixFloatArray(skybuffer.BufferData.MViewP);
+    MSkyWorld.GetMatrixFloatArray(skybuffer.BufferData.MW);
+    skybuffer.CreateBuffer(AppRenderer);
+    skybuffer.BindBuffer(AppRenderer, 1);
+
+
 #pragma endregion
 
 
@@ -321,12 +364,37 @@ int Application::ApplicationUpdate()
 
         buffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
         buffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
-        buffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
+        //buffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
         buffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
         buffer.UpdateBuffer(AppRenderer);
 
+        ViewProj = pCam.GetCameraProjectionMatrix() * pCam.GetCameraViewMatrix().GetMat3x3().GetMat4x4();;
+        ViewProj = ViewProj.Transpose();
+        ViewProj.GetMatrixFloatArray(skybuffer.BufferData.MViewP);
+        MSkyWorld = Skysphere.GetModelMatrix();
+        MSkyWorld = MSkyWorld.Transpose();
+        MSkyWorld.GetMatrixFloatArray(skybuffer.BufferData.MW);
+        skybuffer.UpdateBuffer(AppRenderer);
+
         AppRenderer->ClearBackbuffer();
+        AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+        AppRenderer->UpdateRasterizerState();
+
+        baseVertShader.BindShader(AppRenderer);
+        basePixShader.BindShader(AppRenderer);
+        sphereMesh.BindMesh(0, AppRenderer);
+        PrefilteredCubeMap.BindTexture(AppRenderer, 3);
         AppRenderer->gfxContext->DrawIndexed(sphereMesh.GetIndexListSize(0), 0, 0);
+
+        //Skybox Draw
+        SkyboxVertShader.BindShader(AppRenderer);
+        SkyboxPixShader.BindShader(AppRenderer);
+        Skybox.BindMesh(0, AppRenderer);
+        genCubeMap.BindTexture(AppRenderer, 3);
+        skybuffer.BindBuffer(AppRenderer, 1);
+        AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
+        AppRenderer->UpdateRasterizerState();
+        AppRenderer->gfxContext->DrawIndexed(Skybox.GetIndexListSize(0), 0, 0);
 
         //ImGui Stuff
 
@@ -350,7 +418,7 @@ int Application::ApplicationUpdate()
 
             float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
 
-            float* ac[3] = { &buffer.BufferData.Ambient.x, &buffer.BufferData.Ambient.x , &buffer.BufferData.Ambient.z};
+            float* ac[3] = { &buffer.BufferData.PointLightColor.x, &buffer.BufferData.PointLightColor.x , &buffer.BufferData.PointLightColor.z};
 
             ImGui::Begin("Transforms");                         
 
@@ -372,7 +440,7 @@ int Application::ApplicationUpdate()
 
             ImGui::Text("Light:");
             ImGui::SliderFloat3("Direction", *lD, -1, 1);
-            ImGui::ColorEdit3("Ambient color", *ac); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("Point Light color", *ac); // Edit 3 floats representing a color
             
             //ImGui::SameLine();
 

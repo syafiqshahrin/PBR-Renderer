@@ -73,6 +73,7 @@ inline void CBuffer<T>::CreateBuffer(Renderer* renderer)
 template<typename T>
 inline void CBuffer<T>::UnbindBuffer(Renderer* renderer, int bindslot)
 {
-    //renderer->gfxContext->VSSetConstantBuffers(bindslot, 1, nullptr);
-    //renderer->gfxContext->PSSetConstantBuffers(bindslot, 1, nullptr);
+    Microsoft::WRL::ComPtr<ID3D11Buffer> nullBuffer;
+    renderer->gfxContext->VSSetConstantBuffers(bindslot, 1, &nullBuffer);
+    renderer->gfxContext->PSSetConstantBuffers(bindslot, 1, &nullBuffer);
 }
