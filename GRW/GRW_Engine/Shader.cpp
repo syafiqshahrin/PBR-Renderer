@@ -44,7 +44,7 @@ void VertexShader::CreateShader(Renderer* renderer)
     //vshaderBlob->Release();
 }
 
-void VertexShader::BindShader(Renderer* renderer)
+void VertexShader::BindShader(Renderer* renderer) const
 {
     renderer->gfxContext->VSSetShader(VertShader.Get(), nullptr, 0u);
     renderer->gfxContext->IASetInputLayout(InputLayoutHandle.Get());
@@ -88,7 +88,7 @@ void PixelShader::CreateShader(Renderer* renderer)
     //pshaderBlob->Release();
 }
 
-void PixelShader::BindShader(Renderer* renderer)
+void PixelShader::BindShader(Renderer* renderer) const
 {
     renderer->gfxContext->PSSetShader(PixShader.Get(), nullptr, 0u);
 }

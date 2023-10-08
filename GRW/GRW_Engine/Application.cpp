@@ -134,8 +134,8 @@ int Application::ApplicationUpdate()
     RMATex.BindTexture(AppRenderer, 2);
 
     //Texture2D HDRI("E:/My Documents/Downloads/newport_loft.hdr",4, true);
-    //Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
-    Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
+    Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
+    //Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
     DEBUG("HDRI");
     HDRI.CreateTextureFromFile(AppRenderer, 8, false);
 
@@ -172,7 +172,8 @@ int Application::ApplicationUpdate()
 
 
     //Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
-    Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
+    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
+    Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
     //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/CubicCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/Donut.gltf");
@@ -197,6 +198,11 @@ int Application::ApplicationUpdate()
     SkyboxVertShader.CreateShader(AppRenderer);
     PixelShader SkyboxPixShader("../Shaders/SkyboxPixShader.cso");
     SkyboxPixShader.CreateShader(AppRenderer);
+
+    VertexShader hdrVertShader("../Shaders/PrefilterCubeMapVertShader.cso");
+    hdrVertShader.CreateShader(AppRenderer);
+    PixelShader hdrPixShader("../Shaders/PrefilterCubeMapPixShader.cso");
+    hdrPixShader.CreateShader(AppRenderer);
 
 
 #pragma endregion
@@ -300,17 +306,19 @@ int Application::ApplicationUpdate()
 
 
 #pragma region Generate cubemap test
-    TextureCube genCubeMap;
-    genCubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
-    genCubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, HDRI);
-    genCubeMap.BindTexture(AppRenderer, 3);
+    TextureCube HDRICubeMap;
+    HDRICubeMap.CreateCubeMapRenderTexture(AppRenderer, 1024, 1024);
+    HDRICubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, HDRI);
+    HDRICubeMap.BindTexture(AppRenderer, 3);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
-    TextureCube PrefilteredCubeMap;
-    PrefilteredCubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
-    PrefilteredCubeMap.RenderPrefilteredCubeMap(AppRenderer, AppWindow, genCubeMap);
-    PrefilteredCubeMap.BindTexture(AppRenderer, 3);
+    TextureCube IrradianceCubeMap;
+    IrradianceCubeMap.CreateCubeMapRenderTexture(AppRenderer, 256, 256);
+    IrradianceCubeMap.RenderPrefilteredCubeMap(AppRenderer, AppWindow, HDRICubeMap, hdrVertShader, hdrPixShader);
+    IrradianceCubeMap.BindTexture(AppRenderer, 3);
     //genCubeMap.BindTexture(AppRenderer, 3);
+
+
 #pragma endregion
 
 
@@ -383,14 +391,14 @@ int Application::ApplicationUpdate()
         baseVertShader.BindShader(AppRenderer);
         basePixShader.BindShader(AppRenderer);
         sphereMesh.BindMesh(0, AppRenderer);
-        PrefilteredCubeMap.BindTexture(AppRenderer, 3);
+        IrradianceCubeMap.BindTexture(AppRenderer, 3);
         AppRenderer->gfxContext->DrawIndexed(sphereMesh.GetIndexListSize(0), 0, 0);
 
         //Skybox Draw
         SkyboxVertShader.BindShader(AppRenderer);
         SkyboxPixShader.BindShader(AppRenderer);
         Skybox.BindMesh(0, AppRenderer);
-        genCubeMap.BindTexture(AppRenderer, 3);
+        HDRICubeMap.BindTexture(AppRenderer, 3);
         skybuffer.BindBuffer(AppRenderer, 1);
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
         AppRenderer->UpdateRasterizerState();

@@ -7,7 +7,8 @@
 
 class Renderer;
 class Window;
-
+class VertexShader;
+class PixelShader;
 class Texture2D
 {
 public:
@@ -46,11 +47,13 @@ public:
 	TextureCube(std::string parfilepath, int c = 4, bool hdr = false);
 	~TextureCube();
 	bool CreateTextureFromFile(Renderer* renderer, int bitsperpixel = 8, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
-	bool CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel = 8, int c = 4, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
+	bool CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel = 8, int c = 4, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM,  bool mip = false, int miplevels = 1);
+	
 	void BindTexture(Renderer* renderer, int bindslot) const;
 	void BindAsRenderTarget(Renderer* renderer, int face) const;
 	void RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const &HDRI);
-	void RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const &cubemap);
+	void RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const &cubemap, VertexShader const &vertShader, PixelShader const &pixShader);
+	void RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw, TextureCube const& cubemap, VertexShader const& vertShader, PixelShader const& pixShader);
 	void ReleaseTexture();
 private:
 	void LoadTextureFromFile();

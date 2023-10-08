@@ -14,7 +14,7 @@ public:
 	VertexShader(std::string FilePath);
 	~VertexShader();
 	void CreateShader(Renderer* renderer);
-	void BindShader(Renderer* renderer);
+	void BindShader(Renderer* renderer) const;
 private:
 	std::string ShaderFilePath;
 	void LoadShaderFromFile();
@@ -39,7 +39,7 @@ public:
 	PixelShader(std::string FilePath);
 	~PixelShader();
 	void CreateShader(Renderer* renderer);
-	void BindShader(Renderer* renderer);
+	void BindShader(Renderer* renderer) const;
 private:
 	std::string ShaderFilePath;
 	void LoadShaderFromFile();
