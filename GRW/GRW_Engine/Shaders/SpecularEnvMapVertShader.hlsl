@@ -17,6 +17,7 @@ struct VSOutput
 cbuffer Cbuffer : register(b1)
 {
 	matrix MViewProj;
+	float4 Mip;
 }
 
 VSOutput main(VSInput vIn)

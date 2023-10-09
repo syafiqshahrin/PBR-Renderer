@@ -337,7 +337,7 @@ bool TextureCube::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, DX
     return true;
 }
 
-bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel, int c, DXGI_FORMAT format, bool mip = false, int miplevels)
+bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel, int c, DXGI_FORMAT format, bool mip, int miplevels)
 {
 
     //Fill out tex desc
@@ -393,7 +393,7 @@ bool TextureCube::CreateCubeMapRenderTexture(Renderer* renderer, int w, int h, i
 
     for (int i = 0; i < 6; i++)
     {
-        viewDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, TextureDesc.MipLevels);
+        viewDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
         hr = renderer->gfxDevice->CreateRenderTargetView(Texture2DResource.Get(), &viewDesc, TextureRenderView[i].GetAddressOf());
         if (FAILED(hr))
         {
@@ -421,8 +421,8 @@ void TextureCube::BindAsRenderTarget(Renderer* renderer, int face) const
 
 void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const& HDRI)
 {
-    //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
-    Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
+    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
 
@@ -488,8 +488,8 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
 
 void TextureCube::RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const& cubemap, VertexShader const& vertShader, PixelShader const& pixShader)
 {
-    //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
-    Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
+    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
 
@@ -559,13 +559,16 @@ void TextureCube::RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw
 {
     //Need to create for loop - each loop creates render target view for the face at a specific mip level
     //Need to update cbuffer for each mip level - update roughness value
+    HRESULT hr;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> CubeMapMip_RTV;
     D3D11_RENDER_TARGET_VIEW_DESC CubeMapMip_RTV_Desc;
     CubeMapMip_RTV_Desc.Format = TextureDesc.Format;
     CubeMapMip_RTV_Desc.Texture2DArray.ArraySize = 1;
     CubeMapMip_RTV_Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 
-    Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
+    //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
 
@@ -581,7 +584,7 @@ void TextureCube::RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw
     struct buffer
     {
         float VP[16];
-        float Roughness[4];
+        float Mip[4];
     };
     
     CBuffer<buffer> buf;
@@ -608,16 +611,30 @@ void TextureCube::RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw
 
     for (int i = 0; i < 6; i++)
     {
-        this->BindAsRenderTarget(renderer, i);
         CamTransform.SetRotation(rots[i]);
         CamTransform.UpdateMatrix();
 
         ViewP = persCam.GetCameraProjectionMatrix() * persCam.GetCameraViewMatrix();
         ViewP = ViewP.Transpose();
         ViewP.GetMatrixFloatArray(buf.BufferData.VP);
-        buf.UpdateBuffer(renderer);
+        //buf.UpdateBuffer(renderer);
 
-        renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+        for (int m = 0; m < TextureDesc.MipLevels; m++)
+        {
+            //Vector4 miplevel(m, 0, 0, 0);
+            buf.BufferData.Mip[0] = (float)m/ (float)(TextureDesc.MipLevels - 1);
+            buf.UpdateBuffer(renderer);
+            
+            CubeMapMip_RTV_Desc.Texture2DArray.MipSlice = m;
+            CubeMapMip_RTV_Desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
+            hr = renderer->gfxDevice->CreateRenderTargetView(Texture2DResource.Get(), &CubeMapMip_RTV_Desc, &CubeMapMip_RTV);
+            
+            renderer->gfxContext->OMSetRenderTargets(1, CubeMapMip_RTV.GetAddressOf(), nullptr);
+            renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+
+        }
+        //this->BindAsRenderTarget(renderer, i);
+       
     }
 
     renderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;

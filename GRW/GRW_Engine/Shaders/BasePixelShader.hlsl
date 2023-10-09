@@ -238,7 +238,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	
 	//Final Color
 	float4 color = float4(FinalLight.rgb,1);
-	float4 test = float4(irradiance.xyz,1);
+	float4 test = float4(ambient.xyz,1);
 	return color;
 
 }
