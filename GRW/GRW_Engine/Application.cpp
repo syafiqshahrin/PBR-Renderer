@@ -138,8 +138,8 @@ int Application::ApplicationUpdate()
     RMATex.BindTexture(AppRenderer, 2);
 
     //Texture2D HDRI("E:/My Documents/Downloads/newport_loft.hdr",4, true);
-    Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
-    //Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
+    //Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
+    Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
     //Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr", 4, true);
     DEBUG("HDRI");
     HDRI.CreateTextureFromFile(AppRenderer, 8, false);
@@ -178,8 +178,8 @@ int Application::ApplicationUpdate()
 
 
     //Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
-    Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
+    Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
+    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
     //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/CubicCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/Donut.gltf");

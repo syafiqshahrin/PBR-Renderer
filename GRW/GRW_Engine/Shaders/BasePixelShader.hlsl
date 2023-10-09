@@ -134,7 +134,9 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 
 	//Textures
-	float2 uv = pIN.texcoord0 * 2;
+	float2 uv = pIN.texcoord0;
+	uv.y *= 2;
+	uv.x *= 2;
 	float4 baseColor = DiffuseTex.Sample(samplerTest, uv);
 	float4 RMA = RMATex.Sample(samplerTest, uv);
 	float4 texNorm = NormTex.Sample(samplerTest, uv) * 2.0f - 1.0f;
