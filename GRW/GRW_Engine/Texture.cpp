@@ -168,7 +168,7 @@ bool Texture2D::CreateRenderTexture(Renderer* renderer, int w, int h, int bitspe
     TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
     TextureDesc.MiscFlags = 0;
     TextureDesc.CPUAccessFlags = 0;
-    return false;
+    
 
     HRESULT hr = renderer->gfxDevice->CreateTexture2D(&TextureDesc, nullptr, &Texture2DResource);
     if (FAILED(hr))
@@ -205,7 +205,10 @@ bool Texture2D::CreateRenderTexture(Renderer* renderer, int w, int h, int bitspe
         DEBUG("Failed creating texture2d shader resource view - " << errorText);
 
         //return -1;
+        return false;
     }
+
+    return true;
 
 }
 
@@ -216,8 +219,26 @@ void Texture2D::BindTexture(Renderer* renderer, int bindslot) const
 
 void Texture2D::BindAsRenderTarget(Renderer* renderer) const
 {
-    if (IsRenderTexture)
-        renderer->gfxContext->OMSetRenderTargets(1, TextureRenderView.GetAddressOf(), nullptr);
+    //if (IsRenderTexture)
+    renderer->gfxContext->OMSetRenderTargets(1, TextureRenderView.GetAddressOf(), nullptr);
+}
+
+void Texture2D::RenderToTexture(Renderer* renderer, Window* wndw, VertexShader const& vertShader, PixelShader const& pixShader)
+{
+    Mesh plane("D:/Asset Files/Blender/FBX Files/Plane.gltf");
+    plane.CreateMeshFromFile(renderer);
+    plane.BindMesh(0, renderer);
+
+    vertShader.BindShader(renderer);
+    pixShader.BindShader(renderer);
+
+    renderer->SetViewport(TextureDesc.Width, TextureDesc.Height);
+    this->BindAsRenderTarget(renderer);
+
+    renderer->gfxContext->DrawIndexed(plane.GetIndexListSize(0), 0, 0);
+
+    renderer->SetViewport(wndw->GetWidth(), wndw->GetHeight());
+    renderer->BindBackBufferAsRenderTarget();
 }
 
 void Texture2D::ReleaseTexture()

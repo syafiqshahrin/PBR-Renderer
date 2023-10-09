@@ -19,6 +19,7 @@ public:
 	bool CreateRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel = 8, int c = 4, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
 	void BindTexture(Renderer* renderer, int bindslot) const;
 	void BindAsRenderTarget(Renderer* renderer) const;
+	void RenderToTexture(Renderer* renderer, Window* wndw, VertexShader const& vertShader, PixelShader const& pixShader);
 	void ReleaseTexture();
 private:
 	void LoadTextureFromFile();

@@ -216,6 +216,13 @@ int Application::ApplicationUpdate()
     PixelShader specEnvPixShader("../Shaders/SpecularEnvMapPixShader.cso");
     specEnvPixShader.CreateShader(AppRenderer);
 
+    VertexShader specBRDFVertShader("../Shaders/SpecularBRDFVertShader.cso");
+    specBRDFVertShader.CreateShader(AppRenderer);
+    PixelShader specBRDFPixShader("../Shaders/SpecularBRDFPixShader.cso");
+    specBRDFPixShader.CreateShader(AppRenderer);
+
+
+
 
 #pragma endregion
 
@@ -336,6 +343,9 @@ int Application::ApplicationUpdate()
     SpecularEnvMap.RenderPrefilteredCubeWithMips(AppRenderer, AppWindow, HDRICubeMap, specEnvVertShader, specEnvPixShader);
     //SpecularEnvMap.BindTexture(AppRenderer, 3);
 
+    Texture2D SpecularIntegrationBRDF;
+    SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer, 128, 128, 16, 2, DXGI_FORMAT_R16G16_UNORM);
+    SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, specBRDFVertShader, specBRDFPixShader);
 
 #pragma endregion
 
