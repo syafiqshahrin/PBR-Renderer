@@ -35,8 +35,9 @@ float2 Hammersley(uint i, uint N)
 float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
 {
 	float a = roughness * roughness;
+	//float a =0;
 	float phi = 2.0 * PI * Xi.x;
-	float cosT = sqrt((1 - Xi.y) / (1 + ((a*a) - 1) * Xi.y));
+	float cosT = sqrt((1 - Xi.y) / (1 + (a*a - 1) * Xi.y));
 	float sinT = sqrt(1 - (cosT*cosT));
 
 	float3 H;
@@ -71,7 +72,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 R = N;
 	float3 V = R;
 
-	const uint SAMPLE_COUNT = 1024u;
+	const uint SAMPLE_COUNT = 4096u;
 	float totalWeight = 0.0;
 	float3 prefilteredColor = float3(0, 0, 0);
 
@@ -79,7 +80,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	{
 		float2 Xi = Hammersley(i, SAMPLE_COUNT);
 		float3 H = ImportanceSampleGGX(Xi, N, Mip.x);
-		float3 L = normalize(2.0 * dot(V, H) * H - V);
+		precise float3 L = normalize(2.0 * dot(V, H) * H - V);
 
 		float NdotL = max(dot(N, L), 0.0);
 		if (NdotL > 0.0)

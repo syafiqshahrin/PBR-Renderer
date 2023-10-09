@@ -42,7 +42,6 @@ float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
 	H.z = cosT;
 
 	float3 up = abs(N.z) < 0.999 ? float3(0, 0, 1.0) : float3(1.0, 0, 0);
-	//float3 up = float3(0,0,N.z);
 	float3 tangent = normalize(cross(up, N));
 	float3 bitangent = cross(N, tangent);
 
@@ -75,7 +74,7 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 float2 IntegrateBRDF(float NdotV, float roughness)
 {
 	float3 V;
-	V.x = sqrt(1.0 - NdotV * NdotV);
+	V.x = sqrt(1.0 - (NdotV * NdotV));
 	V.y = 0.0;
 	V.z = NdotV;
 
@@ -84,12 +83,12 @@ float2 IntegrateBRDF(float NdotV, float roughness)
 
 	float3 N = float3(0.0, 0.0, 1.0);
 
-	const uint SAMPLE_COUNT = 1024u;
+	const uint SAMPLE_COUNT = 4096u;
 	for (uint i = 0u; i < SAMPLE_COUNT; ++i)
 	{
 		float2 Xi = Hammersley(i, SAMPLE_COUNT);
 		float3 H = ImportanceSampleGGX(Xi, N, roughness);
-		float3 L = normalize(2.0 * dot(V, H) * H - V);
+		precise float3 L = normalize(2.0 * dot(V, H) * H - V);
 
 		float NdotL = max(L.z, 0.0);
 		float NdotH = max(H.z, 0.0);
@@ -112,9 +111,11 @@ float2 IntegrateBRDF(float NdotV, float roughness)
 	return float2(A, B);
 }
 
-float4 main(VSOutput pIN) : SV_TARGET
+float2 main(VSOutput pIN) : SV_TARGET
 {
-	float2 integratedBRDF = IntegrateBRDF(pIN.uv.x, pIN.uv.y);
-	return float4(integratedBRDF.xy, 0, 1);
+	float2 integratedBRDF = IntegrateBRDF(pIN.uv.x, 1-pIN.uv.y);
+	//return float2(integratedBRDF.xy, 0, 1);
+	return integratedBRDF;
+	//return float4(1,1,1, 1);
 }
 

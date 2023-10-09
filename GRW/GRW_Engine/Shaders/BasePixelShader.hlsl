@@ -29,7 +29,9 @@ cbuffer Cbuffer : register(b0)
 Texture2D DiffuseTex: register(t0);
 Texture2D NormTex: register(t1);
 Texture2D RMATex: register(t2);
+Texture2D SpecIntBRDF: register(t5);
 TextureCube IrradianceMap: register(t3);
+TextureCube SpecularEnvMap: register(t4);
 SamplerState samplerTest: register(s0);
 
 static const float PI = 3.14159265f;
@@ -47,8 +49,9 @@ float3 FresnelSchlickRoughness(float3 baseC, float metal, float roughness, float
 {
 	// FresnelFactor using Fresnel-Schlick: F = F0 + (1 - F0) (1 - (dot(V, H))^5
 	float3 F0 = lerp(0.04, baseC.rgb, metal);
-	float p = pow(1 - clamp(dot(v, n), 0.0001, 1.0), 5.0);
-	float3 F = F0 + (max(1 - roughness, F0)- F0) * p;
+	float p = pow(1 - clamp(dot(n,v), 0.0, 1.0), 5.0);
+	float3 f3 = max( float3(1 - roughness, 1 - roughness, 1 - roughness), F0);
+	float3 F = F0 + (f3- F0) * p;
 	return F;
 }
 
@@ -143,6 +146,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	//environment map temp
 	float3 R = reflect(-V, N);
+
 	//float4 Sky = Cubemap.Sample(samplerTest, R.xyz);
 	//float4 Ambient = IrradianceMap.Sample(samplerTest, Nv.xyz);
 
@@ -193,7 +197,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	//for directional light
 	float r = max(RMA.r, 0.001);
-	//float r = 0.1;
+	//float r = 0.9;
 	float m = RMA.g;
 	//float m = 1;
 
@@ -229,10 +233,16 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 kS = FresnelSchlickRoughness(baseColor.rgb, m, r, V, N);
 	float3 kD = 1.0 - kS;
 	kD *= 1 - m;
-	float3 irradiance = IrradianceMap.Sample(samplerTest, pIN.posWS.xyz);
+	float3 irradiance = IrradianceMap.Sample(samplerTest, N.xyz);
 	float3 iblDiffuse = irradiance * baseColor.rgb;
-	float3 ambient = (kD * iblDiffuse);
 
+	//Spec ambient term
+	const float MAX_REFLECTION_LOD = 4.0;
+	float3 specEnvMap = SpecularEnvMap.SampleLevel(samplerTest, R, r * MAX_REFLECTION_LOD).rgb;
+	float2 envBRDF = SpecIntBRDF.Sample(samplerTest, float2(max(dot(N, -V), 0.0), r)).rg;
+	float3 specular = specEnvMap * (kS * (envBRDF.x + envBRDF.y));
+
+	float3 ambient = (kD * iblDiffuse + specular);
 
 	FinalLight += ambient;
 	

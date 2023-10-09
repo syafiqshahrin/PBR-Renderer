@@ -22,7 +22,7 @@ VSOutput main(VSInput vIn)
 	VSOutput pixOut;
 
 	//Position
-	float4 pos4 = float4(vIn.vPos, 1);
+	float4 pos4 = float4(vIn.vPos.xy, 1, 1);
 	pixOut.vPos = pos4;
 	pixOut.localPos = vIn.vPos;
 	pixOut.uv = vIn.vTexCoord0;

@@ -114,33 +114,33 @@ int Application::ApplicationUpdate()
 #pragma region Texture Loading and Setup
     //Texture Loading
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
-    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
+    Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
     //Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
     //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
-    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
+    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
     DiffuseTex.CreateTextureFromFile(AppRenderer, 8, true, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
     DiffuseTex.BindTexture(AppRenderer, 0);
 
 
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
+    Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
+    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
     //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
     NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
     //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
-    Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_RMA.png");
+    //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_RMA.png");
     //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
-    //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png");
+    Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png");
     RMATex.CreateTextureFromFile(AppRenderer);
     RMATex.BindTexture(AppRenderer, 2);
 
     //Texture2D HDRI("E:/My Documents/Downloads/newport_loft.hdr",4, true);
-    //Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
+    Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
     //Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
-    Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr", 4, true);
+    //Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr", 4, true);
     DEBUG("HDRI");
     HDRI.CreateTextureFromFile(AppRenderer, 8, false);
 
@@ -177,9 +177,9 @@ int Application::ApplicationUpdate()
 #pragma region Mesh Loading and mesh binding
 
 
-    Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    //Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
+    Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
     //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/CubicCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/Donut.gltf");
@@ -187,8 +187,8 @@ int Application::ApplicationUpdate()
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     sphereMesh.CreateMeshFromFile(AppRenderer);
     
-    //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
-    Mesh Skybox("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    Mesh Skybox("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
+    //Mesh Skybox("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
     Skybox.CreateMeshFromFile(AppRenderer);
 
     //
@@ -339,13 +339,15 @@ int Application::ApplicationUpdate()
 
     /**/
     TextureCube SpecularEnvMap;
-    SpecularEnvMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM, true, 5);
+    SpecularEnvMap.CreateCubeMapRenderTexture(AppRenderer,128, 128, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM, true, 5);
     SpecularEnvMap.RenderPrefilteredCubeWithMips(AppRenderer, AppWindow, HDRICubeMap, specEnvVertShader, specEnvPixShader);
-    //SpecularEnvMap.BindTexture(AppRenderer, 3);
+    SpecularEnvMap.BindTexture(AppRenderer, 4);
 
     Texture2D SpecularIntegrationBRDF;
-    SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer, 128, 128, 16, 2, DXGI_FORMAT_R16G16_UNORM);
+    SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer,512, 512, 16, 2, DXGI_FORMAT_R16G16_UNORM);
+    //SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer, 128, 128, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
     SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, specBRDFVertShader, specBRDFPixShader);
+    SpecularIntegrationBRDF.BindTexture(AppRenderer, 5);
 
 #pragma endregion
 
@@ -426,8 +428,7 @@ int Application::ApplicationUpdate()
         SkyboxVertShader.BindShader(AppRenderer);
         SkyboxPixShader.BindShader(AppRenderer);
         Skybox.BindMesh(0, AppRenderer);
-        //HDRICubeMap.BindTexture(AppRenderer, 3);
-        SpecularEnvMap.BindTexture(AppRenderer, 3);
+        HDRICubeMap.BindTexture(AppRenderer, 3);
         skybuffer.BindBuffer(AppRenderer, 1);
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
         AppRenderer->UpdateRasterizerState();
