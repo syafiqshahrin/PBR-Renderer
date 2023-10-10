@@ -113,7 +113,7 @@ float2 IntegrateBRDF(float NdotV, float roughness)
 
 float2 main(VSOutput pIN) : SV_TARGET
 {
-	float2 integratedBRDF = IntegrateBRDF(pIN.uv.x, 1-pIN.uv.y);
+	float2 integratedBRDF = IntegrateBRDF(pIN.uv.x, -pIN.uv.y);
 	//return float2(integratedBRDF.xy, 0, 1);
 	return integratedBRDF;
 	//return float4(1,1,1, 1);

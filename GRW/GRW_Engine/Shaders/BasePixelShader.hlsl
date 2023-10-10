@@ -198,8 +198,8 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 FinalLight;
 
 	//for directional light
-	float r = max(RMA.r, 0.001);
-	//float r = 0.9;
+	float r = max(RMA.r, 0.0001);
+	//float r = 0.0001;
 	float m = RMA.g;
 	//float m = 1;
 
@@ -226,9 +226,10 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	final = BRDF * lightCol1.rgb * NDL1;
 	FinalLight += final; 
-	//FinalLight += final + pow(((Sky.rgb/PI) * (1-r)), 1); //with environment map hack/test/temp
-	
-	//FinalLight = pow(FinalLight.rgb, (1.0 / 2.2));
+
+
+
+	//Gamma Correction	
 	FinalLight = pow(FinalLight.rgb, (1.0 / 2.2));
 
 	//Diffuse Ambient term
@@ -242,15 +243,17 @@ float4 main(VSOutput pIN) : SV_TARGET
 	const float MAX_REFLECTION_LOD = 4.0;
 	float3 specEnvMap = SpecularEnvMap.SampleLevel(samplerTest, R, r * MAX_REFLECTION_LOD).rgb;
 	float2 envBRDF = SpecIntBRDF.Sample(samplerTest, float2(max(dot(N, -V), 0.0), r)).rg;
-	float3 specular = specEnvMap * (kS * (envBRDF.x + envBRDF.y));
+	float3 specular = specEnvMap * (kS * envBRDF.x + envBRDF.y);
 
+	//Final Ambient term
 	float3 ambient = (kD * iblDiffuse + specular);
-
+	
+	//Final Light Color
 	FinalLight += ambient;
 	
 	//Final Color
 	float4 color = float4(FinalLight.rgb,1);
-	float4 test = float4(ambient.xyz,1);
+	float4 test = float4(specular.xyz,1);
 	return color;
 
 }
