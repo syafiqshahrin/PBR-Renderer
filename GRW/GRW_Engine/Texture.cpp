@@ -225,7 +225,7 @@ void Texture2D::BindAsRenderTarget(Renderer* renderer) const
 
 void Texture2D::RenderToTexture(Renderer* renderer, Window* wndw, VertexShader const& vertShader, PixelShader const& pixShader)
 {
-    Mesh plane("D:/Asset Files/Blender/FBX Files/Plane.gltf");
+    Mesh plane("../Assets/Mesh/Plane.gltf");
     //Mesh plane("E:/My Documents/Assets/Blender/FBX/Plane.gltf");
     plane.CreateMeshFromFile(renderer);
     plane.BindMesh(0, renderer);
@@ -447,7 +447,7 @@ void TextureCube::BindAsRenderTarget(Renderer* renderer, int face) const
 
 void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const& HDRI)
 {
-    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    Mesh cubeMesh("../Assets/Mesh/UnitCube.gltf");
     //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
@@ -514,7 +514,7 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
 
 void TextureCube::RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const& cubemap, VertexShader const& vertShader, PixelShader const& pixShader)
 {
-    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    Mesh cubeMesh("../Assets/Mesh/UnitCube.gltf");
     //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
@@ -592,7 +592,7 @@ void TextureCube::RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw
     CubeMapMip_RTV_Desc.Texture2DArray.ArraySize = 1;
     CubeMapMip_RTV_Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 
-    Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/UnitCube.gltf");
+    Mesh cubeMesh("../Assets/Mesh/UnitCube.gltf");
     //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
     //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
     cubeMesh.CreateMeshFromFile(renderer);

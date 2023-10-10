@@ -117,7 +117,7 @@ int Application::ApplicationUpdate()
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
     //Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
-    Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_basecolor.png");
+    Texture2D DiffuseTex("../Assets/Textures/TexturedSurface2_basecolor.png");
     //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
     DiffuseTex.CreateTextureFromFile(AppRenderer, 8, true, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
     DiffuseTex.BindTexture(AppRenderer, 0);
@@ -126,11 +126,11 @@ int Application::ApplicationUpdate()
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
     //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
-    Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_normal.png");
+    Texture2D NormalTex("../Assets/Textures/TexturedSurface2_normal.png");
     NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
-    Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface2_RMA.png");
+    Texture2D RMATex("../Assets/Textures/TexturedSurface2_RMA.png");
     //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_RMA.png");
     //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
     //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png");
@@ -140,7 +140,7 @@ int Application::ApplicationUpdate()
     //Texture2D HDRI("E:/My Documents/Downloads/newport_loft.hdr",4, true);
     //Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
     //Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
-    Texture2D HDRI("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr", 4, true);
+    Texture2D HDRI("../Assets/Textures/resting_place_2_2k.hdr", 4, true);
     DEBUG("HDRI");
     HDRI.CreateTextureFromFile(AppRenderer, 8, false);
 
@@ -177,7 +177,7 @@ int Application::ApplicationUpdate()
 #pragma region Mesh Loading and mesh binding
 
 
-    Mesh sphereMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    Mesh sphereMesh("../Assets/Mesh/SphereTest.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
     //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
     //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
@@ -188,7 +188,7 @@ int Application::ApplicationUpdate()
     sphereMesh.CreateMeshFromFile(AppRenderer);
     
     //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
-    Mesh Skybox("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
+    Mesh Skybox("../Assets/Mesh/SphereTest.gltf");
     Skybox.CreateMeshFromFile(AppRenderer);
 
     //
