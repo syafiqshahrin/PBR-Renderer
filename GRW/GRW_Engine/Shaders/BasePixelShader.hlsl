@@ -201,7 +201,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float r = max(RMA.r, 0.0001);
 	//float r = 0.0001;
 	float m = RMA.g;
-	//float m = 1;
+	//float m = 0;
 
 	float3 F = FresnelSchlick(baseColor.rgb, m, V, H0);
 	float3 K = DiffuseFract(F, m);

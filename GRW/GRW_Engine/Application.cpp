@@ -26,7 +26,7 @@
 #include "Shader.h"
 //#define STB_IMAGE_IMPLEMENTATION
 #include "Image/stb_image.h"
-
+#include <filesystem>
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -91,6 +91,12 @@ void Application::StartApplication()
 
 int Application::ApplicationUpdate()
 {
+    //Test listing filepaths in directory
+    std::string path = "../Assets/Textures";
+    for (const auto& entry : std::filesystem::directory_iterator(path))
+    {
+        DEBUG(entry.path());
+    }
     HRESULT hr;
 
 #pragma region IMGUI Setup
@@ -117,6 +123,7 @@ int Application::ApplicationUpdate()
     //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
     //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
     //Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
+    //Texture2D DiffuseTex("../Assets/Textures/TexturedSurface_basecolor.png");
     Texture2D DiffuseTex("../Assets/Textures/TexturedSurface2_basecolor.png");
     //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
     DiffuseTex.CreateTextureFromFile(AppRenderer, 8, true, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
@@ -126,10 +133,12 @@ int Application::ApplicationUpdate()
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
     //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
     //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
+    //Texture2D NormalTex("../Assets/Textures/TexturedSurface_normal.png");
     Texture2D NormalTex("../Assets/Textures/TexturedSurface2_normal.png");
     NormalTex.CreateTextureFromFile(AppRenderer);
     NormalTex.BindTexture(AppRenderer, 1);
 
+    //Texture2D RMATex("../Assets/Textures/TexturedSurface_RMA.png");
     Texture2D RMATex("../Assets/Textures/TexturedSurface2_RMA.png");
     //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_RMA.png");
     //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
