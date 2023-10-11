@@ -99,6 +99,8 @@ int Application::ApplicationUpdate()
     }
     HRESULT hr;
 
+
+
 #pragma region IMGUI Setup
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
