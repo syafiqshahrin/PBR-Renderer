@@ -26,7 +26,7 @@ public:
 	template<typename T>
 	T* GetAsset(std::string const & name);
 	
-
+	void GetAllLoadedTextureNames(std::vector<std::string> &names);
 
 private:
 	AssetManager();
@@ -69,3 +69,14 @@ inline Mesh* AssetManager::GetAsset<Mesh>(std::string const& name)
 	return &MeshMap[name];
 }
 
+template<>
+inline VertexShader* AssetManager::GetAsset<VertexShader>(std::string const& name)
+{
+	return &VertexShaderMap[name];
+}
+
+template<>
+inline PixelShader* AssetManager::GetAsset<PixelShader>(std::string const& name)
+{
+	return &PixelShaderMap[name];
+}

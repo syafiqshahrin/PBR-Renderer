@@ -7,6 +7,10 @@
 #include "Debug.h"
 #include "Renderer.h"
 
+VertexShader::VertexShader()
+{
+}
+
 VertexShader::VertexShader(std::string FilePath)
 {
 	ShaderFilePath = FilePath;
@@ -61,6 +65,10 @@ void VertexShader::LoadShaderFromFile()
 
         DEBUG("Failed to load shader cso file :" << errorText);
     }
+}
+
+PixelShader::PixelShader()
+{
 }
 
 PixelShader::PixelShader(std::string FilePath)

@@ -9,6 +9,15 @@
 
 AssetManager* AssetManager::Instance = nullptr;
 
+void AssetManager::GetAllLoadedTextureNames(std::vector<std::string> &names)
+{
+	for (std::map<std::string, std::string>::iterator it = TexturePaths.begin(); it != TexturePaths.end(); it++)
+	{
+		names.push_back(it->first);
+	}
+
+}
+
 AssetManager::AssetManager()
 {
 
@@ -103,8 +112,22 @@ void AssetManager::LoadMeshAssets()
 	for (std::map<std::string, std::string>::iterator it = MeshPaths.begin(); it != MeshPaths.end(); it++)
 	{
 		MeshMap.insert({ it->first, Mesh(it->second) });
-		DEBUG(it->first.c_str());
 		MeshMap[it->first].CreateMeshFromFile(renderer);
+	}
+}
+
+void AssetManager::LoadShaderAssets()
+{
+	for (std::map<std::string, std::string>::iterator it = VertexShaderPaths.begin(); it != VertexShaderPaths.end(); it++)
+	{
+		VertexShaderMap.insert({ it->first, VertexShader(it->second) });
+		VertexShaderMap[it->first].CreateShader(renderer);
+	}
+
+	for (std::map<std::string, std::string>::iterator it = PixelShaderPaths.begin(); it != PixelShaderPaths.end(); it++)
+	{
+		PixelShaderMap.insert({ it->first, PixelShader(it->second) });
+		PixelShaderMap[it->first].CreateShader(renderer);
 	}
 }
 
@@ -137,12 +160,17 @@ void AssetManager::SetRenderer(Renderer* rdr)
 	GetAssetManager()->renderer = rdr;
 }
 
+AssetManager::~AssetManager()
+{
+}
+
 
 bool AssetManager::LoadAllAssets()
 {
 	LoadAssetPaths();
 	LoadTextureAssets();
 	LoadMeshAssets();
+	LoadShaderAssets();
 	return false;
 }
 

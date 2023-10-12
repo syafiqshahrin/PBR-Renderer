@@ -40,6 +40,7 @@ Application::~Application()
 {
 	delete AppWindow;
 	delete AppRenderer;
+    delete AssetManager::GetAssetManager();
 }
 
 void Application::StartApplication()
@@ -169,33 +170,47 @@ int Application::ApplicationUpdate()
 
 #pragma region Vertex and Pixel Shader setup temp
 
-    VertexShader baseVertShader("../Shaders/VertexCSO/BaseVertexShader.cso");
-    baseVertShader.CreateShader(AppRenderer);
-    PixelShader basePixShader("../Shaders/PixelCSO/BasePixelShader.cso");
-    basePixShader.CreateShader(AppRenderer);
-
-    VertexShader SkyboxVertShader("../Shaders/VertexCSO/SkyboxVertShader.cso");
-    SkyboxVertShader.CreateShader(AppRenderer);
-    PixelShader SkyboxPixShader("../Shaders/PixelCSO/SkyboxPixShader.cso");
-    SkyboxPixShader.CreateShader(AppRenderer);
-
-    VertexShader hdrVertShader("../Shaders/VertexCSO/PrefilterCubeMapVertShader.cso");
-    hdrVertShader.CreateShader(AppRenderer);
-    PixelShader hdrPixShader("../Shaders/PixelCSO/PrefilterCubeMapPixShader.cso");
-    hdrPixShader.CreateShader(AppRenderer);
-
-    VertexShader specEnvVertShader("../Shaders/VertexCSO/SpecularEnvMapVertShader.cso");
-    specEnvVertShader.CreateShader(AppRenderer);
-    PixelShader specEnvPixShader("../Shaders/PixelCSO/SpecularEnvMapPixShader.cso");
-    specEnvPixShader.CreateShader(AppRenderer);
-
-    VertexShader specBRDFVertShader("../Shaders/VertexCSO/SpecularBRDFVertShader.cso");
-    specBRDFVertShader.CreateShader(AppRenderer);
-    PixelShader specBRDFPixShader("../Shaders/PixelCSO/SpecularBRDFPixShader.cso");
-    specBRDFPixShader.CreateShader(AppRenderer);
+    //VertexShader baseVertShader("../Shaders/VertexCSO/BaseVertexShader.cso");
+    //baseVertShader.CreateShader(AppRenderer);
+    //PixelShader basePixShader("../Shaders/PixelCSO/BasePixelShader.cso");
+    //basePixShader.CreateShader(AppRenderer);
 
 
+    //VertexShader SkyboxVertShader("../Shaders/VertexCSO/SkyboxVertShader.cso");
+    //SkyboxVertShader.CreateShader(AppRenderer);
+    //PixelShader SkyboxPixShader("../Shaders/PixelCSO/SkyboxPixShader.cso");
+    //SkyboxPixShader.CreateShader(AppRenderer);
 
+    //VertexShader hdrVertShader("../Shaders/VertexCSO/PrefilterCubeMapVertShader.cso");
+    //hdrVertShader.CreateShader(AppRenderer);
+    //PixelShader hdrPixShader("../Shaders/PixelCSO/PrefilterCubeMapPixShader.cso");
+    //hdrPixShader.CreateShader(AppRenderer);
+
+    //VertexShader specEnvVertShader("../Shaders/VertexCSO/SpecularEnvMapVertShader.cso");
+    //specEnvVertShader.CreateShader(AppRenderer);
+    //PixelShader specEnvPixShader("../Shaders/PixelCSO/SpecularEnvMapPixShader.cso");
+    //specEnvPixShader.CreateShader(AppRenderer);
+
+    //VertexShader specBRDFVertShader("../Shaders/VertexCSO/SpecularBRDFVertShader.cso");
+    //specBRDFVertShader.CreateShader(AppRenderer);
+    //PixelShader specBRDFPixShader("../Shaders/PixelCSO/SpecularBRDFPixShader.cso");
+    //specBRDFPixShader.CreateShader(AppRenderer);
+
+
+    VertexShader* baseVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("BaseVertexShader.cso");
+    PixelShader* basePixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("BasePixelShader.cso");
+
+    VertexShader* SkyboxVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("SkyboxVertShader.cso");
+    PixelShader* SkyboxPixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("SkyboxPixShader.cso");
+
+    VertexShader* hdrVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("PrefilterCubeMapVertShader.cso");
+    PixelShader* hdrPixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("PrefilterCubeMapPixShader.cso");
+
+    VertexShader* specEnvVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("SpecularEnvMapVertShader.cso");
+    PixelShader* specEnvPixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("SpecularEnvMapPixShader.cso");
+
+    VertexShader* specBRDFVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("SpecularBRDFVertShader.cso");
+    PixelShader* specBRDFPixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("SpecularBRDFPixShader.cso");
 
 #pragma endregion
 
@@ -306,20 +321,20 @@ int Application::ApplicationUpdate()
 
     TextureCube IrradianceCubeMap;
     IrradianceCubeMap.CreateCubeMapRenderTexture(AppRenderer, 128, 128);
-    IrradianceCubeMap.RenderPrefilteredCubeMap(AppRenderer, AppWindow, HDRICubeMap, hdrVertShader, hdrPixShader);
+    IrradianceCubeMap.RenderPrefilteredCubeMap(AppRenderer, AppWindow, HDRICubeMap, *hdrVertShader, *hdrPixShader);
     IrradianceCubeMap.BindTexture(AppRenderer, 3);
     //genCubeMap.BindTexture(AppRenderer, 3);
 
     /**/
     TextureCube SpecularEnvMap;
     SpecularEnvMap.CreateCubeMapRenderTexture(AppRenderer,128, 128, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM, true, 5);
-    SpecularEnvMap.RenderPrefilteredCubeWithMips(AppRenderer, AppWindow, HDRICubeMap, specEnvVertShader, specEnvPixShader);
+    SpecularEnvMap.RenderPrefilteredCubeWithMips(AppRenderer, AppWindow, HDRICubeMap, *specEnvVertShader, *specEnvPixShader);
     SpecularEnvMap.BindTexture(AppRenderer, 4);
 
     Texture2D SpecularIntegrationBRDF;
     SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer,512, 512, 16, 2, DXGI_FORMAT_R16G16_UNORM);
     //SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer, 128, 128, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
-    SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, specBRDFVertShader, specBRDFPixShader);
+    SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, *specBRDFVertShader, *specBRDFPixShader);
     SpecularIntegrationBRDF.BindTexture(AppRenderer, 5);
 
 #pragma endregion
@@ -327,8 +342,8 @@ int Application::ApplicationUpdate()
 
 #pragma region Vertex and Pixel Shader switch
     ///*
-    baseVertShader.BindShader(AppRenderer);
-    basePixShader.BindShader(AppRenderer);
+    baseVertShader->BindShader(AppRenderer);
+    basePixShader->BindShader(AppRenderer);
     sphereMesh->BindMesh(0, AppRenderer);
     //*/
 #pragma endregion
@@ -342,8 +357,9 @@ int Application::ApplicationUpdate()
         {
             break;
         }
-        //render loop stuff
-        //draw triangle
+
+
+#pragma region Logic Update
         Vector3 rot = cube.GetRotation();
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
@@ -355,7 +371,7 @@ int Application::ApplicationUpdate()
         cube.SetRotation(rot);
         cube.UpdateMatrix();
         CamTes.UpdateMatrix();
-        
+
         MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
         MVP = MVP.Transpose();
         MVP.GetMatrixFloatArray(buffer.BufferData.MVP);
@@ -363,7 +379,7 @@ int Application::ApplicationUpdate()
         MWorld = cube.GetModelMatrix();
         MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
         MView = CamTes.GetModelMatrix().Transpose();
-        
+
         MWorld = MWorld.Transpose();
         MWorld.GetMatrixFloatArray(buffer.BufferData.MW);
         MView.GetMatrixFloatArray(buffer.BufferData.MC);
@@ -386,29 +402,32 @@ int Application::ApplicationUpdate()
         MSkyWorld = MSkyWorld.Transpose();
         MSkyWorld.GetMatrixFloatArray(skybuffer.BufferData.MW);
         skybuffer.UpdateBuffer(AppRenderer);
-
+#pragma endregion
+       
+#pragma region Draw Loop
         AppRenderer->ClearBackbuffer();
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
         AppRenderer->UpdateRasterizerState();
 
-        baseVertShader.BindShader(AppRenderer);
-        basePixShader.BindShader(AppRenderer);
+        baseVertShader->BindShader(AppRenderer);
+        basePixShader->BindShader(AppRenderer);
         sphereMesh->BindMesh(0, AppRenderer);
         IrradianceCubeMap.BindTexture(AppRenderer, 3);
         AppRenderer->gfxContext->DrawIndexed(sphereMesh->GetIndexListSize(0), 0, 0);
 
         //Skybox Draw
-        SkyboxVertShader.BindShader(AppRenderer);
-        SkyboxPixShader.BindShader(AppRenderer);
+        SkyboxVertShader->BindShader(AppRenderer);
+        SkyboxPixShader->BindShader(AppRenderer);
         Skybox->BindMesh(0, AppRenderer);
         HDRICubeMap.BindTexture(AppRenderer, 3);
         skybuffer.BindBuffer(AppRenderer, 1);
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
         AppRenderer->UpdateRasterizerState();
         AppRenderer->gfxContext->DrawIndexed(Skybox->GetIndexListSize(0), 0, 0);
-
+#pragma endregion
         //ImGui Stuff
 
+#pragma region IMGUI Stuff
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
@@ -429,38 +448,60 @@ int Application::ApplicationUpdate()
 
             float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
 
-            float* ac[3] = { &buffer.BufferData.PointLightColor.x, &buffer.BufferData.PointLightColor.x , &buffer.BufferData.PointLightColor.z};
+            float* ac[3] = { &buffer.BufferData.PointLightColor.x, &buffer.BufferData.PointLightColor.x , &buffer.BufferData.PointLightColor.z };
 
-            ImGui::Begin("Transforms");                         
+            if(ImGui::Begin("Transforms"))
+            {
+
+                ImGui::Text("Object Transform:");
+                ImGui::DragFloat3("Position", *p, 0.1f);
+                ImGui::DragFloat3("Rotation", *r, 1.0f);
+                ImGui::DragFloat3("Scale", *s, 0.1f);
+                cube.SetPosition(pos);
+                cube.SetRotation(rot);
+                cube.SetScale(scale);
 
 
-            ImGui::Text("Cube Transform:");
-            ImGui::SliderFloat3("Position", *p, -100, 100);            
-            ImGui::SliderFloat3("Rotation", *r, -180, 180);           
-            ImGui::SliderFloat3("Scale", *s, -100, 100);            
-            cube.SetPosition(pos);
-            cube.SetRotation(rot);
-            cube.SetScale(scale);
+                ImGui::Text("Camera Transform:");
+                ImGui::DragFloat3("Cam Position", *pC, 0.1f);
+                ImGui::DragFloat3("Cam Rotation", *rC, 1.0f);
+                CamTes.SetPosition(posC);
+                CamTes.SetRotation(rotC);
 
-            
-            ImGui::Text("Camera Transform:");
-            ImGui::SliderFloat3("Cam Position", *pC, -100, 100);
-            ImGui::SliderFloat3("Cam Rotation", *rC, -180, 180);
-            CamTes.SetPosition(posC);
-            CamTes.SetRotation(rotC);
+                ImGui::Text("Light:");
+                ImGui::SliderFloat3("Direction", *lD, -1, 1);
+                ImGui::ColorEdit3("Point Light color", *ac); // Edit 3 floats representing a color
 
-            ImGui::Text("Light:");
-            ImGui::SliderFloat3("Direction", *lD, -1, 1);
-            ImGui::ColorEdit3("Point Light color", *ac); // Edit 3 floats representing a color
-            
-            //ImGui::SameLine();
+                //ImGui::SameLine();
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+                ImGui::End();
+            }
+            else
+            {
+                ImGui::End();
+            }
+
+            if (ImGui::Begin("Log"))
+            {
+                if (ImGui::CollapsingHeader("Window options"))
+                {
+
+                }
+                ImGui::End();
+            }
+            else
+            {
+                ImGui::End();
+            }
+
+           // ImGui::Begin("Transforms", );
+
         }
 
         ImGui::Render();
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+#pragma endregion
 
         AppRenderer->UpdateSwapchain();
 
@@ -470,4 +511,5 @@ int Application::ApplicationUpdate()
         //DEBUG("Time difference = " << deltaTime);
     }
     return 0;
+
 }

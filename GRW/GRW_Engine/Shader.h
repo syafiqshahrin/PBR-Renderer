@@ -11,6 +11,7 @@ class Renderer;
 class VertexShader
 {
 public:
+	VertexShader();
 	VertexShader(std::string FilePath);
 	~VertexShader();
 	void CreateShader(Renderer* renderer);
@@ -36,6 +37,7 @@ private:
 class PixelShader
 {
 public:
+	PixelShader();
 	PixelShader(std::string FilePath);
 	~PixelShader();
 	void CreateShader(Renderer* renderer);

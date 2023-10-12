@@ -13,7 +13,7 @@
 #include "Vector.h"
 #include "CBuffer.h"
 #include "Shader.h"
-
+#include "AssetManager.h"
 
 #pragma region Texture2D
 Texture2D::Texture2D()
@@ -33,7 +33,7 @@ Texture2D::Texture2D(std::string filepath, int c, bool hdr)
 
 Texture2D::~Texture2D()
 {
-    ReleaseTexture();
+    //ReleaseTexture();
 }
 
 bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool genMips, DXGI_FORMAT format)
@@ -215,10 +215,8 @@ void Texture2D::BindAsRenderTarget(Renderer* renderer) const
 
 void Texture2D::RenderToTexture(Renderer* renderer, Window* wndw, VertexShader const& vertShader, PixelShader const& pixShader)
 {
-    Mesh plane("../Assets/Mesh/Plane.gltf");
-    //Mesh plane("E:/My Documents/Assets/Blender/FBX/Plane.gltf");
-    plane.CreateMeshFromFile(renderer);
-    plane.BindMesh(0, renderer);
+    Mesh* plane = AssetManager::GetAssetManager()->GetAsset<Mesh>("Plane.gltf");
+    plane->BindMesh(0, renderer);
 
     vertShader.BindShader(renderer);
     pixShader.BindShader(renderer);
@@ -228,7 +226,7 @@ void Texture2D::RenderToTexture(Renderer* renderer, Window* wndw, VertexShader c
     renderer->UpdateRasterizerState();
     this->BindAsRenderTarget(renderer);
 
-    renderer->gfxContext->DrawIndexed(plane.GetIndexListSize(0), 0, 0);
+    renderer->gfxContext->DrawIndexed(plane->GetIndexListSize(0), 0, 0);
 
     renderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
     renderer->UpdateRasterizerState();
@@ -238,16 +236,14 @@ void Texture2D::RenderToTexture(Renderer* renderer, Window* wndw, VertexShader c
 
 void Texture2D::ReleaseTexture()
 {
-    //if(TextureData != nullptr)
-        //free(TextureData);
-    /*
-    if (Texture2DResource.Get() != nullptr)
+    if(TextureData != nullptr)
+        free(TextureData);
+    if (Texture2DResource != nullptr)
         Texture2DResource->Release();
-    if (TextureShaderView.Get() != nullptr)
+    if (TextureShaderView != nullptr)
         TextureShaderView->Release();
-    if (IsRenderTexture)
+    if (IsRenderTexture && TextureRenderView != nullptr)
         TextureRenderView->Release();
-    */
 }
 
 void Texture2D::LoadTextureFromFile()
@@ -285,7 +281,7 @@ TextureCube::TextureCube(std::string parfilepath, int c, bool hdr)
 
 TextureCube::~TextureCube()
 {
-    ReleaseTexture();
+    //ReleaseTexture();
 }
 
 bool TextureCube::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, DXGI_FORMAT format)
@@ -442,18 +438,15 @@ void TextureCube::BindAsRenderTarget(Renderer* renderer, int face) const
 
 void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2D const& HDRI)
 {
-    Mesh cubeMesh("../Assets/Mesh/UnitCube.gltf");
-    //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
-    cubeMesh.CreateMeshFromFile(renderer);
-    cubeMesh.BindMesh(0, renderer);
 
-    VertexShader hdrVertShader("../Shaders/VertexCSO/HDRConverterVertShader.cso");
-    hdrVertShader.CreateShader(renderer);
-    PixelShader hdrPixShader("../Shaders/PixelCSO/HDRConverterPixShader.cso");
-    hdrPixShader.CreateShader(renderer);
-
-    hdrVertShader.BindShader(renderer);
-    hdrPixShader.BindShader(renderer);
+    Mesh *cubeMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("UnitCube.gltf");
+    cubeMesh->BindMesh(0, renderer);
+    
+    VertexShader *hdrVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("HDRConverterVertShader.cso");
+    PixelShader* hdrPixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("HDRConverterPixShader.cso");
+    
+    hdrVertShader->BindShader(renderer);
+    hdrPixShader->BindShader(renderer);
 
     Transform CamTransform;
 
@@ -497,7 +490,7 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
         ViewP.GetMatrixFloatArray(buf.BufferData.VP);
         buf.UpdateBuffer(renderer);
 
-        renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+        renderer->gfxContext->DrawIndexed(cubeMesh->GetIndexListSize(0), 0, 0);
     }
 
     renderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
@@ -509,17 +502,9 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
 
 void TextureCube::RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, TextureCube const& cubemap, VertexShader const& vertShader, PixelShader const& pixShader)
 {
-    Mesh cubeMesh("../Assets/Mesh/UnitCube.gltf");
-    //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
-    cubeMesh.CreateMeshFromFile(renderer);
-    cubeMesh.BindMesh(0, renderer);
+    Mesh* cubeMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("UnitCube.gltf");
+    cubeMesh->BindMesh(0, renderer);
 
-    /*
-    VertexShader hdrVertShader("../Shaders/PrefilterCubeMapVertShader.cso");
-    hdrVertShader.CreateShader(renderer);
-    PixelShader hdrPixShader("../Shaders/PrefilterCubeMapPixShader.cso");
-    hdrPixShader.CreateShader(renderer);
-    */
 
     vertShader.BindShader(renderer);
     pixShader.BindShader(renderer);
@@ -566,7 +551,7 @@ void TextureCube::RenderPrefilteredCubeMap(Renderer* renderer, Window* wndw, Tex
         ViewP.GetMatrixFloatArray(buf.BufferData.VP);
         buf.UpdateBuffer(renderer);
 
-        renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+        renderer->gfxContext->DrawIndexed(cubeMesh->GetIndexListSize(0), 0, 0);
     }
 
     renderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
@@ -587,11 +572,9 @@ void TextureCube::RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw
     CubeMapMip_RTV_Desc.Texture2DArray.ArraySize = 1;
     CubeMapMip_RTV_Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 
-    Mesh cubeMesh("../Assets/Mesh/UnitCube.gltf");
-    //Mesh cubeMesh("D:/Asset Files/Blender/FBX Files/SphereTest.gltf");
-    //Mesh cubeMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
-    cubeMesh.CreateMeshFromFile(renderer);
-    cubeMesh.BindMesh(0, renderer);
+
+    Mesh* cubeMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("UnitCube.gltf");
+    cubeMesh->BindMesh(0, renderer);
 
     
     vertShader.BindShader(renderer);
@@ -652,7 +635,7 @@ void TextureCube::RenderPrefilteredCubeWithMips(Renderer* renderer, Window* wndw
             hr = renderer->gfxDevice->CreateRenderTargetView(Texture2DResource.Get(), &CubeMapMip_RTV_Desc, &CubeMapMip_RTV);
             
             renderer->gfxContext->OMSetRenderTargets(1, CubeMapMip_RTV.GetAddressOf(), nullptr);
-            renderer->gfxContext->DrawIndexed(cubeMesh.GetIndexListSize(0), 0, 0);
+            renderer->gfxContext->DrawIndexed(cubeMesh->GetIndexListSize(0), 0, 0);
 
         }
         //this->BindAsRenderTarget(renderer, i);
