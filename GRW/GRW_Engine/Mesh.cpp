@@ -6,6 +6,10 @@
 #include "Renderer.h"
 #include <comdef.h>
 
+Mesh::Mesh()
+{
+}
+
 Mesh::Mesh(std::string const &filePath)
 {
 	FilePath = filePath;

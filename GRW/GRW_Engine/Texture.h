@@ -9,6 +9,17 @@ class Renderer;
 class Window;
 class VertexShader;
 class PixelShader;
+
+struct TextureImportSetting
+{
+	std::string name;
+	int Components;
+	bool HDR;
+	int BitsPerPixel;
+	bool GenerateMips;
+	DXGI_FORMAT Format;
+};
+
 class Texture2D
 {
 public:
@@ -21,6 +32,7 @@ public:
 	void BindAsRenderTarget(Renderer* renderer) const;
 	void RenderToTexture(Renderer* renderer, Window* wndw, VertexShader const& vertShader, PixelShader const& pixShader);
 	void ReleaseTexture();
+	void SetFilePath(std::string path);
 private:
 	void LoadTextureFromFile();
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture2DResource;

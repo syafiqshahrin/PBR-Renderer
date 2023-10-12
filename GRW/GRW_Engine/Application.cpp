@@ -27,11 +27,13 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include "Image/stb_image.h"
 #include <filesystem>
+#include "AssetManager.h"
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
 	AppWindow = new Window(AppTitle, w, h, hInstance);
 	AppRenderer = new Renderer(AppWindow->GetWindHandle(), w, h, true);
+    AssetManager::SetRenderer(AppRenderer);
 }
 
 Application::~Application()
@@ -42,6 +44,23 @@ Application::~Application()
 
 void Application::StartApplication()
 {
+    AssetManager::GetAssetManager()->LoadAllAssets();
+#pragma region IMGUI Setup
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
+    ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
+#pragma endregion
 	//initialise resources and other stuff here
         //create and initialise transforms array (keeps track of all transforms)
         //create and initialise vertex shader array
@@ -91,69 +110,22 @@ void Application::StartApplication()
 
 int Application::ApplicationUpdate()
 {
-    //Test listing filepaths in directory
-    std::string path = "../Assets/Textures";
-    for (const auto& entry : std::filesystem::directory_iterator(path))
-    {
-        DEBUG(entry.path());
-    }
     HRESULT hr;
 
 
 
-#pragma region IMGUI Setup
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
-    ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
-#pragma endregion
-
-
 #pragma region Texture Loading and Setup
-    //Texture Loading
-    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_basecolor.png");
-    //Texture2D DiffuseTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png");
-    //Texture2D DiffuseTex("C:/Users/syafiq.shahrin/Downloads/resting_place_2_2k.hdr");
-    //Texture2D DiffuseTex("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr");
-    //Texture2D DiffuseTex("../Assets/Textures/TexturedSurface_basecolor.png");
-    Texture2D DiffuseTex("../Assets/Textures/TexturedSurface2_basecolor.png");
-    //Texture2D DiffuseTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_basecolor.png");
-    DiffuseTex.CreateTextureFromFile(AppRenderer, 8, true, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+
+    Texture2D DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_basecolor.png");
     DiffuseTex.BindTexture(AppRenderer, 0);
 
-
-    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_normal.png");
-    //Texture2D NormalTex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png");
-    //Texture2D NormalTex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_normal.png");
-    //Texture2D NormalTex("../Assets/Textures/TexturedSurface_normal.png");
-    Texture2D NormalTex("../Assets/Textures/TexturedSurface2_normal.png");
-    NormalTex.CreateTextureFromFile(AppRenderer);
+    Texture2D NormalTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_normal.png");
     NormalTex.BindTexture(AppRenderer, 1);
 
-    //Texture2D RMATex("../Assets/Textures/TexturedSurface_RMA.png");
-    Texture2D RMATex("../Assets/Textures/TexturedSurface2_RMA.png");
-    //Texture2D RMATex("D:/Asset Files/Substance Designer/Misc/TexturedSurface_RMA.png");
-    //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Materials/Wood/Wood_RMA.png");
-    //Texture2D RMATex("E:/My Documents/Assets/Substance Designer/Homestead Realm/Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png");
-    RMATex.CreateTextureFromFile(AppRenderer);
+    Texture2D RMATex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_RMA.png");
     RMATex.BindTexture(AppRenderer, 2);
 
-    //Texture2D HDRI("E:/My Documents/Downloads/newport_loft.hdr",4, true);
-    //Texture2D HDRI("E:/My Documents/Downloads/chinese_garden_2k.hdr",4, true);
-    //Texture2D HDRI("E:/My Documents/Downloads/little_paris_eiffel_tower_2k.hdr",4, true);
-    Texture2D HDRI("../Assets/Textures/resting_place_2_2k.hdr", 4, true);
-    DEBUG("HDRI");
-    HDRI.CreateTextureFromFile(AppRenderer, 8, false);
+    Texture2D HDRI = AssetManager::GetAssetManager()->GetAsset<Texture2D>("resting_place_2_2k.hdr");
 
 #pragma endregion
 
@@ -188,48 +160,38 @@ int Application::ApplicationUpdate()
 #pragma region Mesh Loading and mesh binding
 
 
-    Mesh sphereMesh("../Assets/Mesh/SphereTest.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
-    //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/RoundedCylinder.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/CubicCylinder.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/Donut.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/BarrelTest.gltf");
-    //Mesh sphereMesh("E:/My Documents/Assets/Blender/FBX/UnitCube.gltf");
-    sphereMesh.CreateMeshFromFile(AppRenderer);
-    
-    //Mesh Skybox("E:/My Documents/Assets/Blender/FBX/SphereTest.gltf");
-    Mesh Skybox("../Assets/Mesh/SphereTest.gltf");
-    Skybox.CreateMeshFromFile(AppRenderer);
+
+    Mesh sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
+    Mesh Skybox = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
 
     //
 #pragma endregion
 
 #pragma region Vertex and Pixel Shader setup temp
 
-    VertexShader baseVertShader("../Shaders/BaseVertexShader.cso");
+    VertexShader baseVertShader("../Shaders/VertexCSO/BaseVertexShader.cso");
     baseVertShader.CreateShader(AppRenderer);
-    PixelShader basePixShader("../Shaders/BasePixelShader.cso");
+    PixelShader basePixShader("../Shaders/PixelCSO/BasePixelShader.cso");
     basePixShader.CreateShader(AppRenderer);
 
-    VertexShader SkyboxVertShader("../Shaders/SkyboxVertShader.cso");
+    VertexShader SkyboxVertShader("../Shaders/VertexCSO/SkyboxVertShader.cso");
     SkyboxVertShader.CreateShader(AppRenderer);
-    PixelShader SkyboxPixShader("../Shaders/SkyboxPixShader.cso");
+    PixelShader SkyboxPixShader("../Shaders/PixelCSO/SkyboxPixShader.cso");
     SkyboxPixShader.CreateShader(AppRenderer);
 
-    VertexShader hdrVertShader("../Shaders/PrefilterCubeMapVertShader.cso");
+    VertexShader hdrVertShader("../Shaders/VertexCSO/PrefilterCubeMapVertShader.cso");
     hdrVertShader.CreateShader(AppRenderer);
-    PixelShader hdrPixShader("../Shaders/PrefilterCubeMapPixShader.cso");
+    PixelShader hdrPixShader("../Shaders/PixelCSO/PrefilterCubeMapPixShader.cso");
     hdrPixShader.CreateShader(AppRenderer);
 
-    VertexShader specEnvVertShader("../Shaders/SpecularEnvMapVertShader.cso");
+    VertexShader specEnvVertShader("../Shaders/VertexCSO/SpecularEnvMapVertShader.cso");
     specEnvVertShader.CreateShader(AppRenderer);
-    PixelShader specEnvPixShader("../Shaders/SpecularEnvMapPixShader.cso");
+    PixelShader specEnvPixShader("../Shaders/PixelCSO/SpecularEnvMapPixShader.cso");
     specEnvPixShader.CreateShader(AppRenderer);
 
-    VertexShader specBRDFVertShader("../Shaders/SpecularBRDFVertShader.cso");
+    VertexShader specBRDFVertShader("../Shaders/VertexCSO/SpecularBRDFVertShader.cso");
     specBRDFVertShader.CreateShader(AppRenderer);
-    PixelShader specBRDFPixShader("../Shaders/SpecularBRDFPixShader.cso");
+    PixelShader specBRDFPixShader("../Shaders/PixelCSO/SpecularBRDFPixShader.cso");
     specBRDFPixShader.CreateShader(AppRenderer);
 
 

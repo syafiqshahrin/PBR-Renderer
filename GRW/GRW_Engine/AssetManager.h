@@ -2,37 +2,42 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <type_traits>
+
 
 class Texture2D;
 class TextureCube;
 class Mesh;
 class VertexShader;
 class PixelShader;
-
+class Renderer;
+struct TextureImportSetting;
 
 
 class AssetManager
 {
 public:
-	static AssetManager* GetAssetManger();
+	static AssetManager* GetAssetManager();
+	static void SetRenderer(Renderer* rdr);
 	AssetManager(const AssetManager& obj) = delete;
 	~AssetManager();
 
 	bool LoadAllAssets();
 	template<typename T>
-	bool GetAsset(std::string const & name, T &asset);
+	T& GetAsset(std::string const & name);
+	
 
 
 private:
 	AssetManager();
 	static AssetManager* Instance;
+	Renderer* renderer;
+	std::map<std::string, TextureImportSetting> TextureImportSettings;
 
-
-
-	std::vector<std::string> TexturePaths;
-	std::vector<std::string> MeshPaths;
-	std::vector<std::string> VertexShaderPaths;
-	std::vector<std::string> PixelShaderPaths;
+	std::map<std::string,std::string> TexturePaths;
+	std::map<std::string,std::string> MeshPaths;
+	std::map<std::string,std::string> VertexShaderPaths;
+	std::map<std::string,std::string> PixelShaderPaths;
 
 	std::map<std::string, Texture2D> TextureMap;
 	std::map<std::string, Mesh> MeshMap;
@@ -45,15 +50,22 @@ private:
 	void LoadMeshAssets();
 	void LoadShaderAssets();
 
-	
+	std::string GetFileNameFromPath(std::string path);
 
 };
 
-AssetManager* AssetManager::GetAssetManger()
+
+
+template<>
+inline Texture2D& AssetManager::GetAsset<Texture2D>(std::string const& name)
 {
-	if (Instance == nullptr)
-	{
-		Instance = new AssetManager();
-	}
-	return Instance;
+	return TextureMap[name];
+
 }
+
+template<>
+inline Mesh& AssetManager::GetAsset<Mesh>(std::string const& name)
+{
+	return MeshMap[name];
+}
+

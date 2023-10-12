@@ -59,6 +59,7 @@ struct SubMesh
 class Mesh
 {
 public:
+    Mesh();
 	Mesh(std::string const &filePath);
 	~Mesh();
 	bool CreateMeshFromFile(Renderer* renderer);

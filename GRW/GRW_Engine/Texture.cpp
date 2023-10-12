@@ -41,7 +41,6 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool
     IsRenderTexture = false;
     LoadTextureFromFile();
 
-
     if (!genMips)
     {
         TextureDesc.Width = TexDimensionsW;
@@ -138,16 +137,7 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool
         renderer->gfxContext->GenerateMips(TextureShaderView.Get());
     }
 
-
-    //generate mips
-    if (HDR)
-    {
-        free(TextureDataF);
-    }
-    else
-    {
-        free(TextureData);
-    }
+    free(TextureData);
 
 
     return true;
@@ -250,19 +240,24 @@ void Texture2D::ReleaseTexture()
 {
     //if(TextureData != nullptr)
         //free(TextureData);
-    Texture2DResource->Release();
-    TextureShaderView->Release();
+    /*
+    if (Texture2DResource.Get() != nullptr)
+        Texture2DResource->Release();
+    if (TextureShaderView.Get() != nullptr)
+        TextureShaderView->Release();
     if (IsRenderTexture)
         TextureRenderView->Release();
+    */
 }
 
 void Texture2D::LoadTextureFromFile()
 {
     if (HDR)
     {
-        stbi_set_flip_vertically_on_load(true);
         //TextureDataF = stbi_loadf(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+        stbi_set_flip_vertically_on_load(true);
         TextureData = stbi_load(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
+        stbi_set_flip_vertically_on_load(false);
     }
     else
     {
@@ -452,9 +447,9 @@ void TextureCube::RenderHDRIToCubeMap(Renderer* renderer, Window* wndw, Texture2
     cubeMesh.CreateMeshFromFile(renderer);
     cubeMesh.BindMesh(0, renderer);
 
-    VertexShader hdrVertShader("../Shaders/HDRConverterVertShader.cso");
+    VertexShader hdrVertShader("../Shaders/VertexCSO/HDRConverterVertShader.cso");
     hdrVertShader.CreateShader(renderer);
-    PixelShader hdrPixShader("../Shaders/HDRConverterPixShader.cso");
+    PixelShader hdrPixShader("../Shaders/PixelCSO/HDRConverterPixShader.cso");
     hdrPixShader.CreateShader(renderer);
 
     hdrVertShader.BindShader(renderer);

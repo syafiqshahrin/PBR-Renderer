@@ -354,6 +354,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #pragma endregion
 
     Application App(L"GRW_Engine", 1920, 1080, hInstance);
+    App.StartApplication();
     return App.ApplicationUpdate();
 }
  
