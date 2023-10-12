@@ -45,22 +45,7 @@ Application::~Application()
 void Application::StartApplication()
 {
     AssetManager::GetAssetManager()->LoadAllAssets();
-#pragma region IMGUI Setup
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
-    ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
-#pragma endregion
 	//initialise resources and other stuff here
         //create and initialise transforms array (keeps track of all transforms)
         //create and initialise vertex shader array
@@ -112,20 +97,35 @@ int Application::ApplicationUpdate()
 {
     HRESULT hr;
 
+#pragma region IMGUI Setup
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplWin32_Init(AppWindow->GetWindHandle());
+    ImGui_ImplDX11_Init(AppRenderer->gfxDevice.Get(), AppRenderer->gfxContext.Get());
+#pragma endregion
 
 #pragma region Texture Loading and Setup
 
-    Texture2D DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_basecolor.png");
-    DiffuseTex.BindTexture(AppRenderer, 0);
+    Texture2D *DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_basecolor.png");
+    DiffuseTex->BindTexture(AppRenderer, 0);
 
-    Texture2D NormalTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_normal.png");
-    NormalTex.BindTexture(AppRenderer, 1);
+    Texture2D *NormalTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_normal.png");
+    NormalTex->BindTexture(AppRenderer, 1);
 
-    Texture2D RMATex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_RMA.png");
-    RMATex.BindTexture(AppRenderer, 2);
+    Texture2D *RMATex = AssetManager::GetAssetManager()->GetAsset<Texture2D>("TexturedSurface2_RMA.png");
+    RMATex->BindTexture(AppRenderer, 2);
 
-    Texture2D HDRI = AssetManager::GetAssetManager()->GetAsset<Texture2D>("resting_place_2_2k.hdr");
+    Texture2D *HDRI = AssetManager::GetAssetManager()->GetAsset<Texture2D>("resting_place_2_2k.hdr");
 
 #pragma endregion
 
@@ -161,8 +161,8 @@ int Application::ApplicationUpdate()
 
 
 
-    Mesh sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
-    Mesh Skybox = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
+    Mesh *sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
+    Mesh *Skybox = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
 
     //
 #pragma endregion
@@ -300,9 +300,9 @@ int Application::ApplicationUpdate()
 #pragma region Generate cubemap test
     TextureCube HDRICubeMap;
     HDRICubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
-    HDRICubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, HDRI);
+    HDRICubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, *HDRI);
     HDRICubeMap.BindTexture(AppRenderer, 3);
-    DiffuseTex.BindTexture(AppRenderer, 0);
+    DiffuseTex->BindTexture(AppRenderer, 0);
 
     TextureCube IrradianceCubeMap;
     IrradianceCubeMap.CreateCubeMapRenderTexture(AppRenderer, 128, 128);
@@ -329,7 +329,7 @@ int Application::ApplicationUpdate()
     ///*
     baseVertShader.BindShader(AppRenderer);
     basePixShader.BindShader(AppRenderer);
-    sphereMesh.BindMesh(0, AppRenderer);
+    sphereMesh->BindMesh(0, AppRenderer);
     //*/
 #pragma endregion
 
@@ -393,19 +393,19 @@ int Application::ApplicationUpdate()
 
         baseVertShader.BindShader(AppRenderer);
         basePixShader.BindShader(AppRenderer);
-        sphereMesh.BindMesh(0, AppRenderer);
+        sphereMesh->BindMesh(0, AppRenderer);
         IrradianceCubeMap.BindTexture(AppRenderer, 3);
-        AppRenderer->gfxContext->DrawIndexed(sphereMesh.GetIndexListSize(0), 0, 0);
+        AppRenderer->gfxContext->DrawIndexed(sphereMesh->GetIndexListSize(0), 0, 0);
 
         //Skybox Draw
         SkyboxVertShader.BindShader(AppRenderer);
         SkyboxPixShader.BindShader(AppRenderer);
-        Skybox.BindMesh(0, AppRenderer);
+        Skybox->BindMesh(0, AppRenderer);
         HDRICubeMap.BindTexture(AppRenderer, 3);
         skybuffer.BindBuffer(AppRenderer, 1);
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
         AppRenderer->UpdateRasterizerState();
-        AppRenderer->gfxContext->DrawIndexed(Skybox.GetIndexListSize(0), 0, 0);
+        AppRenderer->gfxContext->DrawIndexed(Skybox->GetIndexListSize(0), 0, 0);
 
         //ImGui Stuff
 

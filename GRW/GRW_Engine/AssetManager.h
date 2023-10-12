@@ -24,7 +24,7 @@ public:
 
 	bool LoadAllAssets();
 	template<typename T>
-	T& GetAsset(std::string const & name);
+	T* GetAsset(std::string const & name);
 	
 
 
@@ -57,15 +57,15 @@ private:
 
 
 template<>
-inline Texture2D& AssetManager::GetAsset<Texture2D>(std::string const& name)
+inline Texture2D* AssetManager::GetAsset<Texture2D>(std::string const& name)
 {
-	return TextureMap[name];
+	return &TextureMap[name];
 
 }
 
 template<>
-inline Mesh& AssetManager::GetAsset<Mesh>(std::string const& name)
+inline Mesh* AssetManager::GetAsset<Mesh>(std::string const& name)
 {
-	return MeshMap[name];
+	return &MeshMap[name];
 }
 
