@@ -348,6 +348,9 @@ int Application::ApplicationUpdate()
     //*/
 #pragma endregion
 
+    std::vector<std::string> Textures;
+    AssetManager::GetAssetManager()->GetAllLoadedTextureNames(Textures);
+    int SelectedTextureIndex = 0;
     //App loop
     float deltaTime = 0;
     while (true)
@@ -408,7 +411,10 @@ int Application::ApplicationUpdate()
         AppRenderer->ClearBackbuffer();
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
         AppRenderer->UpdateRasterizerState();
-
+        //Testing switching textures
+        DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>(Textures[SelectedTextureIndex]);
+        DiffuseTex->BindTexture(AppRenderer, 0);
+        //
         baseVertShader->BindShader(AppRenderer);
         basePixShader->BindShader(AppRenderer);
         sphereMesh->BindMesh(0, AppRenderer);
@@ -482,11 +488,25 @@ int Application::ApplicationUpdate()
                 ImGui::End();
             }
 
-            if (ImGui::Begin("Log"))
+            if (ImGui::Begin("Asset List"))
             {
-                if (ImGui::CollapsingHeader("Window options"))
+                if (ImGui::CollapsingHeader("Loaded Textures"))
                 {
+                    if (ImGui::BeginListBox("##Textures", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing() ) ) )
+                    {
+                        
+                        for (int i = 0; i < Textures.size(); i++)
+                        {
+                            const bool is_selected = (SelectedTextureIndex == i);
+                            if (ImGui::Selectable(Textures[i].c_str(), is_selected))
+                                SelectedTextureIndex = i;
 
+                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndListBox();
+                    }
                 }
                 ImGui::End();
             }
