@@ -135,7 +135,7 @@ int Application::ApplicationUpdate()
 #pragma endregion
 
 #pragma region Mesh Loading and mesh binding
-    Mesh *sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
+    Mesh *DefaultMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
     Mesh *Skybox = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
 
 #pragma endregion
@@ -287,7 +287,7 @@ int Application::ApplicationUpdate()
     ///*
     baseVertShader->BindShader(AppRenderer);
     basePixShader->BindShader(AppRenderer);
-    sphereMesh->BindMesh(0, AppRenderer);
+    DefaultMesh->BindMesh(0, AppRenderer);
     //*/
 #pragma endregion
 
@@ -366,11 +366,11 @@ int Application::ApplicationUpdate()
         basePixShader->BindShader(AppRenderer);
 
         //Testing switching meshes
-        sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>(Meshes[SelectedMeshIndex]);
-        sphereMesh->BindMesh(0, AppRenderer);
+        DefaultMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>(Meshes[SelectedMeshIndex]);
+        DefaultMesh->BindMesh(0, AppRenderer);
         //
         IrradianceCubeMap.BindTexture(AppRenderer, 3);
-        AppRenderer->gfxContext->DrawIndexed(sphereMesh->GetIndexListSize(0), 0, 0);
+        AppRenderer->gfxContext->DrawIndexed(DefaultMesh->GetIndexListSize(0), 0, 0);
 
         //Skybox Draw
         SkyboxVertShader->BindShader(AppRenderer);
