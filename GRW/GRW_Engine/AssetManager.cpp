@@ -9,6 +9,7 @@
 
 AssetManager* AssetManager::Instance = nullptr;
 
+
 void AssetManager::GetAllLoadedTextureNames(std::vector<std::string> &names)
 {
 	for (std::map<std::string, std::string>::iterator it = TexturePaths.begin(); it != TexturePaths.end(); it++)
@@ -16,6 +17,14 @@ void AssetManager::GetAllLoadedTextureNames(std::vector<std::string> &names)
 		names.push_back(it->first);
 	}
 
+}
+
+void AssetManager::GetAllLoadedMeshNames(std::vector<std::string>& names)
+{
+	for (std::map<std::string, std::string>::iterator it = MeshPaths.begin(); it != MeshPaths.end(); it++)
+	{
+		names.push_back(it->first);
+	}
 }
 
 AssetManager::AssetManager()

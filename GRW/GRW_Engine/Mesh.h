@@ -5,7 +5,7 @@
 #include "Vector.h"
 #include <string>
 #include <vector>
-#include <dwmapi.h>
+
 
 class Renderer;
 

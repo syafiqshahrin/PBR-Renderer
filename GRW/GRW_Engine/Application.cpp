@@ -24,9 +24,7 @@
 #include "Mesh.h"
 #include "CBuffer.h"
 #include "Shader.h"
-//#define STB_IMAGE_IMPLEMENTATION
-#include "Image/stb_image.h"
-#include <filesystem>
+#include "Sampler.h"
 #include "AssetManager.h"
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
@@ -46,7 +44,7 @@ Application::~Application()
 void Application::StartApplication()
 {
     AssetManager::GetAssetManager()->LoadAllAssets();
-
+    Deltatime = 0;
 	//initialise resources and other stuff here
         //create and initialise transforms array (keeps track of all transforms)
         //create and initialise vertex shader array
@@ -131,72 +129,18 @@ int Application::ApplicationUpdate()
 #pragma endregion
 
 #pragma region Sampler Setup temp
-    //Sampler setup
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> SamplerState;
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    //samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    samplerDesc.MipLODBias = 0.0f;
-    samplerDesc.MaxAnisotropy = 1;
-    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    samplerDesc.MaxLOD = FLT_MAX;
-    samplerDesc.MinLOD = 0.0f;
-
-    hr = AppRenderer->gfxDevice->CreateSamplerState(&samplerDesc, &SamplerState);
-    if (FAILED(hr))
-    {
-        _com_error error(hr);
-        LPCTSTR errorText = error.ErrorMessage();
-        DEBUG("Failed creating sampler state - " << errorText);
-
-        //return -1;
-    }
-
-    AppRenderer->gfxContext->PSSetSamplers(0, 1, SamplerState.GetAddressOf());
+    Sampler DefaultSampler;
+    DefaultSampler.CreateSampler(AppRenderer);
+    DefaultSampler.BindSampler(0, AppRenderer);
 #pragma endregion
 
 #pragma region Mesh Loading and mesh binding
-
-
-
     Mesh *sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
     Mesh *Skybox = AssetManager::GetAssetManager()->GetAsset<Mesh>("SphereTest.gltf");
 
-    //
 #pragma endregion
 
 #pragma region Vertex and Pixel Shader setup temp
-
-    //VertexShader baseVertShader("../Shaders/VertexCSO/BaseVertexShader.cso");
-    //baseVertShader.CreateShader(AppRenderer);
-    //PixelShader basePixShader("../Shaders/PixelCSO/BasePixelShader.cso");
-    //basePixShader.CreateShader(AppRenderer);
-
-
-    //VertexShader SkyboxVertShader("../Shaders/VertexCSO/SkyboxVertShader.cso");
-    //SkyboxVertShader.CreateShader(AppRenderer);
-    //PixelShader SkyboxPixShader("../Shaders/PixelCSO/SkyboxPixShader.cso");
-    //SkyboxPixShader.CreateShader(AppRenderer);
-
-    //VertexShader hdrVertShader("../Shaders/VertexCSO/PrefilterCubeMapVertShader.cso");
-    //hdrVertShader.CreateShader(AppRenderer);
-    //PixelShader hdrPixShader("../Shaders/PixelCSO/PrefilterCubeMapPixShader.cso");
-    //hdrPixShader.CreateShader(AppRenderer);
-
-    //VertexShader specEnvVertShader("../Shaders/VertexCSO/SpecularEnvMapVertShader.cso");
-    //specEnvVertShader.CreateShader(AppRenderer);
-    //PixelShader specEnvPixShader("../Shaders/PixelCSO/SpecularEnvMapPixShader.cso");
-    //specEnvPixShader.CreateShader(AppRenderer);
-
-    //VertexShader specBRDFVertShader("../Shaders/VertexCSO/SpecularBRDFVertShader.cso");
-    //specBRDFVertShader.CreateShader(AppRenderer);
-    //PixelShader specBRDFPixShader("../Shaders/PixelCSO/SpecularBRDFPixShader.cso");
-    //specBRDFPixShader.CreateShader(AppRenderer);
-
-
     VertexShader* baseVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("BaseVertexShader.cso");
     PixelShader* basePixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("BasePixelShader.cso");
 
@@ -312,7 +256,7 @@ int Application::ApplicationUpdate()
 #pragma endregion
 
 
-#pragma region Generate cubemap test
+#pragma region Generate cubemap
     TextureCube HDRICubeMap;
     HDRICubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
     HDRICubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, *HDRI);
@@ -333,7 +277,6 @@ int Application::ApplicationUpdate()
 
     Texture2D SpecularIntegrationBRDF;
     SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer,512, 512, 16, 2, DXGI_FORMAT_R16G16_UNORM);
-    //SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer, 128, 128, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM);
     SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, *specBRDFVertShader, *specBRDFPixShader);
     SpecularIntegrationBRDF.BindTexture(AppRenderer, 5);
 
@@ -349,10 +292,13 @@ int Application::ApplicationUpdate()
 #pragma endregion
 
     std::vector<std::string> Textures;
+    std::vector<std::string> Meshes;
     AssetManager::GetAssetManager()->GetAllLoadedTextureNames(Textures);
+    AssetManager::GetAssetManager()->GetAllLoadedMeshNames(Meshes);
     int SelectedTextureIndex = 0;
+    int SelectedMeshIndex = 0;
+    
     //App loop
-    float deltaTime = 0;
     while (true)
     {
         std::chrono::steady_clock::time_point startTime = std::chrono::high_resolution_clock::now();
@@ -366,8 +312,8 @@ int Application::ApplicationUpdate()
         Vector3 rot = cube.GetRotation();
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
-        //rot.y += 0.1f * deltaTime;
-        //rot.y = fmod(rot.y, 360.0f);
+        rot.y += 0.1f * Deltatime;
+        rot.y = fmod(rot.y, 360.0f);
 
         //updating cbuffer struct
 
@@ -389,7 +335,7 @@ int Application::ApplicationUpdate()
         MNormal.GetMatrixFloatArray(buffer.BufferData.MNorm);
 
         buffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
-        buffer.BufferData.time.x += deltaTime;
+        buffer.BufferData.time.x += Deltatime;
         buffer.BufferData.light = lightDirNorm.GetVec4(false);
 
         buffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
@@ -415,9 +361,14 @@ int Application::ApplicationUpdate()
         DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>(Textures[SelectedTextureIndex]);
         DiffuseTex->BindTexture(AppRenderer, 0);
         //
+
         baseVertShader->BindShader(AppRenderer);
         basePixShader->BindShader(AppRenderer);
+
+        //Testing switching meshes
+        sphereMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>(Meshes[SelectedMeshIndex]);
         sphereMesh->BindMesh(0, AppRenderer);
+        //
         IrradianceCubeMap.BindTexture(AppRenderer, 3);
         AppRenderer->gfxContext->DrawIndexed(sphereMesh->GetIndexListSize(0), 0, 0);
 
@@ -507,7 +458,29 @@ int Application::ApplicationUpdate()
                         }
                         ImGui::EndListBox();
                     }
+
                 }
+
+                if (ImGui::CollapsingHeader("Loaded Meshes"))
+                {
+                    if (ImGui::BeginListBox("##Meshes", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+                    {
+
+                        for (int i = 0; i < Meshes.size(); i++)
+                        {
+                            const bool is_selected = (SelectedMeshIndex == i);
+                            if (ImGui::Selectable(Meshes[i].c_str(), is_selected))
+                                SelectedMeshIndex = i;
+
+                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndListBox();
+                    }
+
+                }
+
                 ImGui::End();
             }
             else
@@ -527,7 +500,7 @@ int Application::ApplicationUpdate()
 
 
         std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-        deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count() / 1000.0f;
+        Deltatime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count() / 1000.0f;
         //DEBUG("Time difference = " << deltaTime);
     }
     return 0;

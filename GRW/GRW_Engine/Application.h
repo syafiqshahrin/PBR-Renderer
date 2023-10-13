@@ -13,6 +13,7 @@ public:
 
 	void StartApplication();
 	int ApplicationUpdate();
+	float Deltatime;
 private:
 	void InitialiseApplication();
 	Window* AppWindow;

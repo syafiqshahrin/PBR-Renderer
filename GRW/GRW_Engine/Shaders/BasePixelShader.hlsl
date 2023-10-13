@@ -135,8 +135,8 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	//Textures
 	float2 uv = pIN.texcoord0;
-	uv.y *= 2;
-	uv.x *= 2;
+	uv.y *= 1;
+	uv.x *= 1;
 	float4 baseColor = DiffuseTex.Sample(samplerTest, uv);
 	float4 RMA = RMATex.Sample(samplerTest, uv);
 	float4 texNorm = NormTex.Sample(samplerTest, uv) * 2.0f - 1.0f;
@@ -194,15 +194,16 @@ float4 main(VSOutput pIN) : SV_TARGET
 	// k = a/2
 	//F = Fresnel Schlick
 
-	//float r = RMA.r;
-	float3 FinalLight;
-
-	//for directional light
 	float r = max(RMA.r, 0.0001);
 	//float r = 0.0001;
 	float m = RMA.g;
+	float ao = RMA.b;
 	//float m = 0;
-
+	
+	
+	//Lighting
+	float3 FinalLight;
+	//for directional light
 	float3 F = FresnelSchlick(baseColor.rgb, m, V, H0);
 	float3 K = DiffuseFract(F, m);
 
@@ -246,7 +247,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 specular = specEnvMap * (kS * envBRDF.x + envBRDF.y);
 
 	//Final Ambient term
-	float3 ambient = (kD * iblDiffuse + specular);
+	float3 ambient = (kD * iblDiffuse + specular) * ao;
 	
 	//Final Light Color
 	FinalLight += ambient;
