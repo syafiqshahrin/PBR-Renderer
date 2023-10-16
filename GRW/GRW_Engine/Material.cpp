@@ -16,7 +16,7 @@ void MaterialAsset::CreateBlendState(Renderer* renderer)
 	BlendStateDesc.AlphaToCoverageEnable = false;
 	BlendStateDesc.IndependentBlendEnable = false;
 	BlendStateDesc.RenderTarget[0].BlendEnable = true;
-
+	BlendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	switch(blendMode)
 	{
 		case BlendMode::Opaque:
@@ -26,6 +26,7 @@ void MaterialAsset::CreateBlendState(Renderer* renderer)
 			BlendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 			BlendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 			BlendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
 			break;
 		case BlendMode::Transparent:
 			BlendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
