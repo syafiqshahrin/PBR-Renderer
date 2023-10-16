@@ -5,11 +5,7 @@ struct VSOutput
 	float3 worldPos : WPOSITION;
 };
 
-cbuffer Cbuffer : register(b1)
-{
-	matrix MViewProj;
-	matrix MW;
-}
+#include "../Shaders/Buffers.hlsli"
 
 
 TextureCube genCubeMap: register(t3);

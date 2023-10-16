@@ -16,10 +16,10 @@ public:
 	float GetIntensity();
 	Vector3 GetColor();
 
+	Vector3 color;
+	float intensity;
 private:
 	Transform* transform;
-	float intensity;
-	Vector3 color;
 
 };
 
@@ -29,8 +29,8 @@ public:
 	DirectLight(Transform& tform, float i, Vector3 const& col, Vector3 const& dir);
 	void SetLightDirection(Vector3 const& dir);
 	Vector3 GetLightDirection();
-private:
 	Vector3 lightDirection;
+private:
 };
 
 class PointLight : public Light
@@ -39,6 +39,6 @@ public:
 	PointLight(Transform& tform, float i, Vector3 const& col, float rad);
 	void SetLightRadius(float rad);
 	float GetLightRadius();
-private:
 	float radius;
+private:
 };

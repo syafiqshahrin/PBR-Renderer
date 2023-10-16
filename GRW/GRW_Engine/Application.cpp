@@ -157,23 +157,25 @@ int Application::ApplicationUpdate()
     VertexShader* specBRDFVertShader = AssetManager::GetAssetManager()->GetAsset<VertexShader>("SpecularBRDFVertShader.cso");
     PixelShader* specBRDFPixShader = AssetManager::GetAssetManager()->GetAsset<PixelShader>("SpecularBRDFPixShader.cso");
 
+    MaterialAsset* basePBRMat = AssetManager::GetAssetManager()->GetAsset<MaterialAsset>("PBRTestMaterial.mimp");
+
 #pragma endregion
 
 #pragma region Scene stuff
     //Scene
     //Camera test
-    AppRenderer->SetViewport(1024, 1024);
+    //AppRenderer->SetViewport(1024, 1024);
     Transform CamTes;
     CamTes.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     CamTes.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    OrthoCamera cam(CamTes, Vector3(-1, -1, 0.0f), Vector3(1, 1, 1), Vector2(1024, 1024));
+    OrthoCamera cam(CamTes, Vector3(-1, -1, 0.0f), Vector3(1, 1, 1), Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
     PerspectiveCamera pCam(CamTes, 60, 0.1f, 100000.0f, Vector2(AppWindow->GetWidth(), AppWindow->GetHeight()));
 
-    Transform cube;
-    cube.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
-    cube.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-    cube.SetScale(Vector3(1.f, 1.f, 1.f));
-    cube.UpdateMatrix();
+    Transform MainObject;
+    MainObject.SetPosition(Vector3(0.0f, 0.0f, 5.0f));
+    MainObject.SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+    MainObject.SetScale(Vector3(1.f, 1.f, 1.f));
+    MainObject.UpdateMatrix();
 
     Transform Skysphere;
     Skysphere.SetPosition(Vector3(0.0f, 0.0f, 0.0f));
@@ -181,17 +183,11 @@ int Application::ApplicationUpdate()
     Skysphere.SetScale(Vector3(1.f, 1.f, 1.f));
     Skysphere.UpdateMatrix();
 
-    Matrix4x4 ViewProj = pCam.GetCameraProjectionMatrix() * pCam.GetCameraViewMatrix().GetMat3x3().GetMat4x4();
-    ViewProj = ViewProj.Transpose();
-    Matrix4x4 MSkyWorld = Skysphere.GetModelMatrix();
-    MSkyWorld = MSkyWorld.Transpose();
+    
 
-
-    Matrix4x4 MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
-    MVP = MVP.Transpose();
-
-    Vector3 lightDirNorm = Vector3::zero();
-    lightDirNorm.y = -1.0f;
+    Transform DirLight;
+    DirLight.SetPosition(Vector3(0, 0, 0));
+    DirectLight directionalLight(DirLight, 1, Vector3(1,1,1), Vector3(0,-1, 0));
 
     Transform pLight;
     pLight.SetPosition(Vector3(-3.0f, 0.0f, 5.0f));
@@ -202,56 +198,67 @@ int Application::ApplicationUpdate()
 #pragma region Cbuffer setup temp
     ///cbuffer stuff
 
-    struct cbuffer
+    struct PerFrameBuffer
     {
         Vector4 time;
-        float MVP[16];
-        float MW[16];
         float MC[16];
-        float MNorm[16];
-        Vector4 light;
-        Vector4 Ambient;
+        float MViewP[16];
+        Vector4 DirectionalLightPos;
+        Vector4 DirectionalLightColor;
         Vector4 CamPosWS;
         Vector4 PointLightPos;
         Vector4 PointLightColor;
     };
 
-    CBuffer<cbuffer> buffer;
-    buffer.BufferData.time.x = 0;
-    buffer.BufferData.light = lightDirNorm.GetVec4(false);
-    buffer.BufferData.Ambient = Vector4(83.0f / 255, 83.0f / 255, 133.0f / 255.0f, 1);
-    buffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
-    buffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
-    buffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
-    buffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
-    buffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
-    Matrix4x4 MWorld = cube.GetModelMatrix();
-    Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
-
-    Matrix4x4 MView = CamTes.GetModelMatrix();
-
-    MWorld.Transpose();
-    MView.Transpose();
-
-    MVP.GetMatrixFloatArray(buffer.BufferData.MVP);
-    MWorld.GetMatrixFloatArray(buffer.BufferData.MW);
-    MView.GetMatrixFloatArray(buffer.BufferData.MC);
-    MNormal.GetMatrixFloatArray(buffer.BufferData.MNorm);
-
-    buffer.CreateBuffer(AppRenderer);
-    buffer.BindBuffer(AppRenderer, 0);
-
-    struct skyboxBuffer
+    struct PerObjectBuffer
     {
-        float MViewP[16];
+        float MVP[16];
         float MW[16];
+        float MNorm[16];
     };
+    
 
-    CBuffer<skyboxBuffer> skybuffer;
-    ViewProj.GetMatrixFloatArray(skybuffer.BufferData.MViewP);
-    MSkyWorld.GetMatrixFloatArray(skybuffer.BufferData.MW);
-    skybuffer.CreateBuffer(AppRenderer);
-    skybuffer.BindBuffer(AppRenderer, 1);
+    CBuffer<PerFrameBuffer> frameCBuffer;
+    CBuffer<PerObjectBuffer> ObjectCbuffer;
+
+
+    frameCBuffer.BufferData.time.x = 0;
+    frameCBuffer.BufferData.DirectionalLightPos = directionalLight.GetLightDirection().GetVec4(false);
+    frameCBuffer.BufferData.DirectionalLightPos.w = directionalLight.GetIntensity();
+    frameCBuffer.BufferData.DirectionalLightPos = directionalLight.GetColor().GetVec4(false);
+    frameCBuffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
+    frameCBuffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
+    frameCBuffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
+    frameCBuffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
+    frameCBuffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
+
+    Matrix4x4 ViewProj = (pCam.GetCameraProjectionMatrix() * pCam.GetCameraViewMatrix().GetMat3x3().GetMat4x4()).Transpose();
+    Matrix4x4 MCam = CamTes.GetModelMatrix().Transpose();
+    MCam.GetMatrixFloatArray(frameCBuffer.BufferData.MC);
+    ViewProj.GetMatrixFloatArray(frameCBuffer.BufferData.MViewP);
+
+
+
+
+    Matrix4x4 MVP = Matrix4x4::GetMVP(pCam.GetCameraProjectionMatrix(), pCam.GetCameraViewMatrix(), MainObject.GetModelMatrix());
+    Matrix4x4 MWorld = MainObject.GetModelMatrix().Transpose();
+    Matrix4x4 MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4().Transpose();
+
+
+
+    MVP.GetMatrixFloatArray(ObjectCbuffer.BufferData.MVP);
+    MWorld.GetMatrixFloatArray(ObjectCbuffer.BufferData.MW);
+    MNormal.GetMatrixFloatArray(ObjectCbuffer.BufferData.MNorm);
+    
+    
+
+
+    frameCBuffer.CreateBuffer(AppRenderer);
+    frameCBuffer.BindBuffer(AppRenderer, 0);
+
+    ObjectCbuffer.CreateBuffer(AppRenderer);
+    ObjectCbuffer.BindBuffer(AppRenderer, 1);
+
 
 
 #pragma endregion
@@ -286,8 +293,8 @@ int Application::ApplicationUpdate()
 
 #pragma region Vertex and Pixel Shader switch
     ///*
-    baseVertShader->BindShader(AppRenderer);
-    basePixShader->BindShader(AppRenderer);
+    //baseVertShader->BindShader(AppRenderer);
+    //basePixShader->BindShader(AppRenderer);
     DefaultMesh->BindMesh(0, AppRenderer);
     //*/
 #pragma endregion
@@ -310,7 +317,7 @@ int Application::ApplicationUpdate()
 
 
 #pragma region Logic Update
-        Vector3 rot = cube.GetRotation();
+        Vector3 rot = MainObject.GetRotation();
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
         rot.y += 0.1f * Deltatime;
@@ -318,49 +325,54 @@ int Application::ApplicationUpdate()
 
         //updating cbuffer struct
 
-        cube.SetRotation(rot);
-        cube.UpdateMatrix();
+        MainObject.SetRotation(rot);
+        MainObject.UpdateMatrix();
+        Skysphere.UpdateMatrix();
         CamTes.UpdateMatrix();
 
-        MVP = pCam.GetCameraProjectionMatrix() * (pCam.GetCameraViewMatrix() * cube.GetModelMatrix());
-        MVP = MVP.Transpose();
-        MVP.GetMatrixFloatArray(buffer.BufferData.MVP);
 
-        MWorld = cube.GetModelMatrix();
-        MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4();
-        MView = CamTes.GetModelMatrix().Transpose();
+        MVP = Matrix4x4::GetMVP(pCam.GetCameraProjectionMatrix(), pCam.GetCameraViewMatrix(), MainObject.GetModelMatrix());
+        MWorld = MainObject.GetModelMatrix().Transpose();
+        MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4().Transpose();
 
-        MWorld = MWorld.Transpose();
-        MWorld.GetMatrixFloatArray(buffer.BufferData.MW);
-        MView.GetMatrixFloatArray(buffer.BufferData.MC);
-        MNormal.GetMatrixFloatArray(buffer.BufferData.MNorm);
+        MVP.GetMatrixFloatArray(ObjectCbuffer.BufferData.MVP);
+        MWorld.GetMatrixFloatArray(ObjectCbuffer.BufferData.MW);
+        MNormal.GetMatrixFloatArray(ObjectCbuffer.BufferData.MNorm);
 
-        buffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
-        buffer.BufferData.time.x += Deltatime;
-        buffer.BufferData.light = lightDirNorm.GetVec4(false);
+        ObjectCbuffer.UpdateBuffer(AppRenderer);
 
-        buffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
-        buffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
-        //buffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
-        buffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
-        buffer.UpdateBuffer(AppRenderer);
+        frameCBuffer.BufferData.CamPosWS = CamTes.GetPosition().GetVec4(true);
+        frameCBuffer.BufferData.time.x += Deltatime;
+        frameCBuffer.BufferData.DirectionalLightPos = directionalLight.GetLightDirection().GetVec4(false);
+        frameCBuffer.BufferData.DirectionalLightPos.w = directionalLight.GetIntensity();
+        frameCBuffer.BufferData.DirectionalLightColor = directionalLight.GetColor().GetVec4(false);
+        frameCBuffer.BufferData.PointLightPos = pointLight1.GetPosition().GetVec4(true);
+        frameCBuffer.BufferData.PointLightPos.w = pointLight1.GetLightRadius();
+        frameCBuffer.BufferData.PointLightColor = pointLight1.GetColor().GetVec4(false);
+        frameCBuffer.BufferData.PointLightColor.w = pointLight1.GetIntensity();
 
-        ViewProj = pCam.GetCameraProjectionMatrix() * pCam.GetCameraViewMatrix().GetMat3x3().GetMat4x4();;
-        ViewProj = ViewProj.Transpose();
-        ViewProj.GetMatrixFloatArray(skybuffer.BufferData.MViewP);
-        MSkyWorld = Skysphere.GetModelMatrix();
-        MSkyWorld = MSkyWorld.Transpose();
-        MSkyWorld.GetMatrixFloatArray(skybuffer.BufferData.MW);
-        skybuffer.UpdateBuffer(AppRenderer);
+        
+        MCam = CamTes.GetModelMatrix().Transpose();
+        MCam.GetMatrixFloatArray(frameCBuffer.BufferData.MC);
+        ViewProj = (pCam.GetCameraProjectionMatrix() * pCam.GetCameraViewMatrix().GetMat3x3().GetMat4x4()).Transpose();
+        ViewProj.GetMatrixFloatArray(frameCBuffer.BufferData.MViewP);
+        
+        frameCBuffer.UpdateBuffer(AppRenderer);
 #pragma endregion
        
 #pragma region Draw Loop
+        frameCBuffer.BindBuffer(AppRenderer, 0);
+        ObjectCbuffer.BindBuffer(AppRenderer, 1);
+
+        basePBRMat->UpdateMaterial(AppRenderer);
+        basePBRMat->BindMaterial(AppRenderer);
+
         AppRenderer->ClearBackbuffer();
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
         AppRenderer->UpdateRasterizerState();
         //Testing switching textures
-        DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>(Textures[SelectedTextureIndex]);
-        DiffuseTex->BindTexture(AppRenderer, 0);
+        //DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>(Textures[SelectedTextureIndex]);
+        //DiffuseTex->BindTexture(AppRenderer, 0);
         //
 
         baseVertShader->BindShader(AppRenderer);
@@ -374,14 +386,24 @@ int Application::ApplicationUpdate()
         AppRenderer->gfxContext->DrawIndexed(DefaultMesh->GetIndexListSize(0), 0, 0);
 
         //Skybox Draw
+
+        MVP = Matrix4x4::GetMVP(pCam.GetCameraProjectionMatrix(), pCam.GetCameraViewMatrix(), Skysphere.GetModelMatrix());
+        MWorld = Skysphere.GetModelMatrix().Transpose();
+        MNormal = MWorld.GetMat3x3().GetInverse().GetMat4x4().Transpose();
+
+        MVP.GetMatrixFloatArray(ObjectCbuffer.BufferData.MVP);
+        MWorld.GetMatrixFloatArray(ObjectCbuffer.BufferData.MW);
+        MNormal.GetMatrixFloatArray(ObjectCbuffer.BufferData.MNorm);
+        ObjectCbuffer.UpdateBuffer(AppRenderer);
+
         SkyboxVertShader->BindShader(AppRenderer);
         SkyboxPixShader->BindShader(AppRenderer);
         Skybox->BindMesh(0, AppRenderer);
         HDRICubeMap.BindTexture(AppRenderer, 3);
-        skybuffer.BindBuffer(AppRenderer, 1);
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
         AppRenderer->UpdateRasterizerState();
         AppRenderer->gfxContext->DrawIndexed(Skybox->GetIndexListSize(0), 0, 0);
+
 #pragma endregion
         //ImGui Stuff
 
@@ -391,9 +413,9 @@ int Application::ApplicationUpdate()
         ImGui::NewFrame();
         {
             static float f = 0.0f;
-            Vector3 pos = cube.GetPosition();
-            Vector3 rot = cube.GetRotation();
-            Vector3 scale = cube.GetScale();
+            Vector3 pos = MainObject.GetPosition();
+            Vector3 rot = MainObject.GetRotation();
+            Vector3 scale = MainObject.GetScale();
             float* p[3] = { &pos.x, &pos.y, &pos.z };
             float* r[3] = { &rot.x, &rot.y, &rot.z };
             float* s[3] = { &scale.x, &scale.y, &scale.z };
@@ -404,9 +426,9 @@ int Application::ApplicationUpdate()
             float* pC[3] = { &posC.x, &posC.y, &posC.z };
             float* rC[3] = { &rotC.x, &rotC.y, &rotC.z };
 
-            float* lD[3] = { &lightDirNorm.x, &lightDirNorm.y, &lightDirNorm.z };
+            float* lD[3] = { &directionalLight.lightDirection.x, &directionalLight.lightDirection.y, &directionalLight.lightDirection.z };
 
-            float* ac[3] = { &buffer.BufferData.PointLightColor.x, &buffer.BufferData.PointLightColor.x , &buffer.BufferData.PointLightColor.z };
+            float* ac[3] = { &pointLight1.color.x, &pointLight1.color.y , &pointLight1.color.z };
 
             if(ImGui::Begin("Transforms"))
             {
@@ -415,9 +437,9 @@ int Application::ApplicationUpdate()
                 ImGui::DragFloat3("Position", *p, 0.1f);
                 ImGui::DragFloat3("Rotation", *r, 1.0f);
                 ImGui::DragFloat3("Scale", *s, 0.1f);
-                cube.SetPosition(pos);
-                cube.SetRotation(rot);
-                cube.SetScale(scale);
+                MainObject.SetPosition(pos);
+                MainObject.SetRotation(rot);
+                MainObject.SetScale(scale);
 
 
                 ImGui::Text("Camera Transform:");

@@ -16,6 +16,7 @@ void MaterialAsset::CreateBlendState(Renderer* renderer)
 	BlendStateDesc.AlphaToCoverageEnable = false;
 	BlendStateDesc.IndependentBlendEnable = false;
 	BlendStateDesc.RenderTarget[0].BlendEnable = true;
+	BlendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	switch(blendMode)
 	{

@@ -385,6 +385,17 @@ struct Matrix4x4
 		}
 	}
 
+	static Matrix4x4 GetMVP(Matrix4x4 const& projM, Matrix4x4 const& viewM, Matrix4x4 const& object)
+	{
+		return (projM * (viewM * object)).Transpose();
+	}
+
+	static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 const& projM, Matrix4x4 const& viewM)
+	{
+		return (projM * viewM).Transpose();
+	}
+
+
 	Matrix3x3 GetMat3x3();
 };
 
@@ -648,6 +659,7 @@ struct Matrix3x3
 
 		return M;
 	}
+
 
 	void GetMatrixFloatArray(float* f)
 	{

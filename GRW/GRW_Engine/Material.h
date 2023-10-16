@@ -67,7 +67,10 @@ public:
 	MaterialAsset();
 	~MaterialAsset();
 
-	void CreateMaterial(Renderer* renderer, std::string name, VertexShader* vs, PixelShader* ps, std::vector<ShaderParam> const& param, std::vector<TexParam> const &texParam, BlendMode blend, CullMode cull, FillMode fill);
+	void CreateMaterial(Renderer* renderer, std::string name,
+		VertexShader* vs, PixelShader* ps, 
+		std::vector<ShaderParam> const& param, std::vector<TexParam> const &texParam, 
+		BlendMode blend, CullMode cull, FillMode fill);
 
 	void SetScalarParam(std::string paramName, float const& val);
 	void SetVectorParam(std::string paramName, Vector4 const& val);

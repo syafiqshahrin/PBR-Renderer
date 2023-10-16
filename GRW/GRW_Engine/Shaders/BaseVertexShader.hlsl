@@ -20,19 +20,9 @@ struct VSOutput
 	float3 N : NORMALWS;
 
 };
-cbuffer Cbuffer : register(b0)
-{
-	float4 time;
-	matrix MVP;
-	matrix MW;
-	matrix MC;
-	matrix MNorm;
-	float3 lightData;
-	float4 Ambient;
-	float4 CamWS;
-	float4 PLightPos;
-	float4 PLightCol;
-}
+
+#include "../Shaders/Buffers.hlsli"
+
 VSOutput main( VSInput vIn)
 {
 	VSOutput pixOut;
