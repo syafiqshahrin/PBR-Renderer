@@ -13,6 +13,7 @@
 #include "Vector.h"
 #include "CBuffer.h"
 #include "Shader.h"
+#include "Material.h"
 #include "AssetManager.h"
 
 #pragma region Texture2D

@@ -11,12 +11,25 @@ struct VSOutput
 	float3 N : NORMALWS;
 };
 
+//buffer 0 should be saved for things updated once per frame
+// - CamWS (Position)
+// - MCam (Camera World Matrix)
+// - MView (View Matrix)
+// - Time 
+// - DirectionalLightPositionWS/Intensity
+// - DirectionalLightColor
+//buffer 1 should be saved per object
+// - MVP
+// - MWorld
+// - MNorm
+//buffer 2 should be saved for per material
+
 cbuffer Cbuffer : register(b0)
 {
 	float4 time;
 	matrix MVP;
 	matrix MW;
-	matrix MC;
+	matrix MC; //Mview
 	matrix MNorm;
 	float3 lightData;
 	float4 Ambient;
@@ -26,12 +39,16 @@ cbuffer Cbuffer : register(b0)
 
 }
 
+//Define by Material
 Texture2D DiffuseTex: register(t0);
 Texture2D NormTex: register(t1);
 Texture2D RMATex: register(t2);
-Texture2D SpecIntBRDF: register(t5);
+
+//Assigned at runtime
 TextureCube IrradianceMap: register(t3);
 TextureCube SpecularEnvMap: register(t4);
+Texture2D SpecIntBRDF: register(t5);
+
 SamplerState samplerTest: register(s0);
 
 static const float PI = 3.14159265f;

@@ -12,7 +12,8 @@ class VertexShader;
 class PixelShader;
 class Renderer;
 struct TextureImportSetting;
-
+class MaterialAsset;
+struct MaterialAssetData;
 
 class AssetManager
 {
@@ -28,34 +29,43 @@ public:
 	
 	void GetAllLoadedTextureNames(std::vector<std::string>& names);
 	void GetAllLoadedMeshNames(std::vector<std::string> &names);
+	void GetAllLoadedMaterialNames(std::vector<std::string>& names);
 
 private:
 	AssetManager();
 	static AssetManager* Instance;
 	Renderer* renderer;
 	std::map<std::string, TextureImportSetting> TextureImportSettings;
+	std::map<std::string, MaterialAssetData> MaterialImportData;
 
 	std::map<std::string,std::string> TexturePaths;
 	std::map<std::string,std::string> MeshPaths;
 	std::map<std::string,std::string> VertexShaderPaths;
 	std::map<std::string,std::string> PixelShaderPaths;
+	std::map<std::string,std::string> MaterialPaths;
 
 	std::map<std::string, Texture2D> TextureMap;
 	std::map<std::string, Mesh> MeshMap;
 	std::map<std::string, VertexShader> VertexShaderMap;
 	std::map<std::string, PixelShader> PixelShaderMap;
-	
+	std::map<std::string, MaterialAsset> MaterialAssetMap;
 
 	void LoadAssetPaths();
 	void LoadTextureAssets();
 	void LoadMeshAssets();
 	void LoadShaderAssets();
+	void LoadMaterialAssets();
 
 	std::string GetFileNameFromPath(std::string path);
 
 };
 
 
+template<>
+inline MaterialAsset* AssetManager::GetAsset<MaterialAsset>(std::string const& name)
+{
+	return &MaterialAssetMap[name];
+}
 
 template<>
 inline Texture2D* AssetManager::GetAsset<Texture2D>(std::string const& name)
@@ -81,3 +91,4 @@ inline PixelShader* AssetManager::GetAsset<PixelShader>(std::string const& name)
 {
 	return &PixelShaderMap[name];
 }
+

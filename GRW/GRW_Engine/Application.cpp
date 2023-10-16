@@ -25,6 +25,7 @@
 #include "CBuffer.h"
 #include "Shader.h"
 #include "Sampler.h"
+#include "Material.h"
 #include "AssetManager.h"
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)

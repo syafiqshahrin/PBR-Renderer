@@ -1,0 +1,49 @@
+{
+	"Material":
+	{
+		"Name": "PBRTestMaterial",
+		"Textures":
+		[
+			{
+				"ParameterName": "Diffuse",
+				"TextureName": "TexturedSurface2_basecolor.png",
+				"BindSlot": 0
+			},
+			{
+				"ParameterName": "Normal",
+				"TextureName": "TexturedSurface2_normal.png",
+				"BindSlot": 1
+			},
+			{
+				"ParameterName": "RMA",
+				"TextureName": "TexturedSurface2_RMA.png",
+				"BindSlot": 2
+			}
+		],
+		"Parameters":
+		[
+			{
+				"ParamName": "TestColor",
+				"Type": 1,
+				"ScalarValue": 0,
+				"VectorValue": [1,1,1,1],
+				"Offset": 0
+			},
+			{
+				"ParamName": "TestScalar",
+				"Type": 0,
+				"ScalarValue": 0.5,
+				"VectorValue": [0,0,0,0],
+				"Offset": 4
+			}
+		],
+		"Shader":
+		{
+			"Vertex": "BaseVertexShader.cso",
+			"Pixel": "BasePixelShader.cso"
+		},
+		"Blend": 0,
+		"Cull": 0,
+		"Fill": 0
+	}
+}

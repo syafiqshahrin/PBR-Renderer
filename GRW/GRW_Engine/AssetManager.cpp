@@ -6,6 +6,7 @@
 #include <filesystem>
 #include "json.hpp"
 #include "Renderer.h"
+#include "Material.h"
 
 AssetManager* AssetManager::Instance = nullptr;
 
@@ -82,6 +83,17 @@ void AssetManager::LoadAssetPaths()
 		DEBUG(name.c_str() << " : " << p.c_str());
 	}
 
+	//Load material paths
+	path = "../Assets/Materials";
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		std::string p = entry.path().string();
+		p.replace(p.find("\\"), 1, "/");
+		std::string name = GetFileNameFromPath(p);
+		MaterialPaths.insert({ name, p });
+		DEBUG(name.c_str() << " : " << p.c_str());
+	}
+
 
 }
 
@@ -140,6 +152,67 @@ void AssetManager::LoadShaderAssets()
 	}
 }
 
+void AssetManager::LoadMaterialAssets()
+{
+	for (std::map<std::string, std::string>::iterator it = MaterialPaths.begin(); it != MaterialPaths.end(); it++)
+	{
+		std::ifstream f(it->second);
+		nlohmann::json  materialImport = nlohmann::json::parse(f);
+		nlohmann::json materialAssetData = materialImport["Material"];
+		
+		MaterialAssetData matData;
+		
+		matData.Name = materialAssetData["Name"];
+		
+		int textureParamSize = materialAssetData["Textures"].size();
+		for (int i = 0; i < textureParamSize; i++)
+		{
+			TexParam tParam;
+			tParam.paramName = materialAssetData["Textures"][i]["ParameterName"];
+			std::string texName = materialAssetData["Textures"][i]["TextureName"];
+			tParam.texture = &TextureMap[texName];
+			tParam.IsRenderTexture = false;
+			tParam.bindSlot = materialAssetData["Textures"][i]["BindSlot"];
+			matData.textureParams.push_back(tParam);
+		}
+
+		int paramSize = materialAssetData["Parameters"].size();
+		for (int i = 0; i < paramSize; i++)
+		{
+			ShaderParam param;
+			param.paramName = materialAssetData["Parameters"][i]["ParamName"];
+			param.type = static_cast<ShaderParamType>(materialAssetData["Parameters"][i]["Type"]);
+			param.offset = materialAssetData["Parameters"][i]["Offset"];
+			param.valueF = materialAssetData["Parameters"][i]["ScalarValue"];
+			param.valueV.x = materialAssetData["Parameters"][i]["VectorValue"][0];
+			param.valueV.y = materialAssetData["Parameters"][i]["VectorValue"][1];
+			param.valueV.z = materialAssetData["Parameters"][i]["VectorValue"][2];
+			param.valueV.w = materialAssetData["Parameters"][i]["VectorValue"][3];
+			matData.parameters.push_back(param);
+		}
+
+		matData.blend = static_cast<BlendMode>(materialAssetData["Blend"]);
+		matData.cull = static_cast<CullMode>(materialAssetData["Cull"]);
+		matData.fill = static_cast<FillMode>(materialAssetData["Fill"]);
+
+		std::string vsName = materialAssetData["Shader"]["Vertex"];
+		std::string psName = materialAssetData["Shader"]["Pixel"];
+		matData.vs = &VertexShaderMap[vsName];
+		matData.ps = &PixelShaderMap[psName];
+
+		MaterialImportData.insert({it->first, matData});
+
+	}
+
+	for (std::map<std::string, MaterialAssetData>::iterator it = MaterialImportData.begin(); it != MaterialImportData.end(); it++)
+	{
+		MaterialAssetMap.insert({it->first, MaterialAsset()});
+		MaterialAssetMap[it->first].CreateMaterial(renderer, it->second.Name, it->second.vs, it->second.ps, it->second.parameters,
+			it->second.textureParams, it->second.blend,
+			it->second.cull, it->second.fill);
+	}
+}
+
 std::string AssetManager::GetFileNameFromPath(std::string path)
 {
 
@@ -180,6 +253,7 @@ bool AssetManager::LoadAllAssets()
 	LoadTextureAssets();
 	LoadMeshAssets();
 	LoadShaderAssets();
+	LoadMaterialAssets();
 	return false;
 }
 
