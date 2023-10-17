@@ -6,11 +6,14 @@
 #include <map>
 #include "CBuffer.h"
 #include "Vector.h"
+#include "Shader.h"
+
 
 class Texture2D;
 class TextureCube;
 class VertexShader;
 class PixelShader;
+struct MaterialShaderData;
 
 struct MaterialBuffer
 {
@@ -26,11 +29,6 @@ struct TexParam
 	bool IsRenderTexture;
 };
 
-
-enum ShaderParamType {
-	SCALAR = 0,
-	VECTOR
-};
 
 struct ShaderParam
 {
@@ -61,12 +59,25 @@ enum FillMode
 	WIRE
 };
 
+struct MaterialAssetData
+{
+	std::string Name;
+	std::vector<TexParam> textureParams;
+	std::vector<ShaderParam> parameters;
+	BlendMode blend;
+	CullMode cull;
+	FillMode fill;
+	MaterialShader* ms;
+	VertexShader* vs;
+	PixelShader* ps;
+};
+
 class MaterialAsset
 {
 public:
 	MaterialAsset();
 	~MaterialAsset();
-
+	void CreateMaterial(Renderer* renderer, MaterialAssetData const * const MatData);
 	void CreateMaterial(Renderer* renderer, std::string name,
 		VertexShader* vs, PixelShader* ps, 
 		std::vector<ShaderParam> const& param, std::vector<TexParam> const &texParam, 
@@ -82,12 +93,18 @@ public:
 	void SetFillMode(FillMode fMode);
 	void SetBlendMode(BlendMode bMode);
 
+	CullMode GetCullMode();
+	FillMode GetFillMode();
+	BlendMode GetBlendMode();
+
 	void SetTexture(std::string TexName, Texture2D* tex, UINT bindslot, bool IsRT);
 	void GetTextureParamNames(std::vector<std::string> &Textures);
 
 	void BindMaterial(Renderer* renderer);
 	void UpdateMaterial(Renderer* renderer);
 private:
+
+
 	HRESULT hr;
 	//controls fill mode and cull mode and msaa mode - only expose these
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
@@ -132,14 +149,3 @@ private:
 
 };
 
-struct MaterialAssetData
-{
-	std::string Name;
-	std::vector<TexParam> textureParams;
-	std::vector<ShaderParam> parameters;
-	BlendMode blend;
-	CullMode cull;
-	FillMode fill;
-	VertexShader* vs;
-	PixelShader* ps;
-};

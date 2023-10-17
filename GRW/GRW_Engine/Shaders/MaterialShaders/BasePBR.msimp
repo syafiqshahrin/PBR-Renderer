@@ -1,0 +1,47 @@
+{
+	"MaterialShader":
+	{
+		"Name": "BasePBR",
+		"Shader":
+		{
+			"Vertex": "BaseVertexShader.cso",
+			"Pixel": "BasePixelShader.cso"
+		},
+		"Textures":
+		[
+			{
+				"ParameterName": "Diffuse",
+				"DefaultTextureName": "White.png",
+				"BindSlot": 0
+			},
+			{
+				"ParameterName": "Normal",
+				"DefaultTextureName": "Flat.png",
+				"BindSlot": 1
+			},
+			{
+				"ParameterName": "RMA",
+				"DefaultTextureName": "White.png",
+				"BindSlot": 2
+			}
+		],
+		"Parameters":
+		[
+			{
+				"ParamName": "TestColor",
+				"Type": 1,
+				"ScalarValue": 0,
+				"VectorValue": [1,1,1,1],
+				"Index": 0
+			},
+			{
+				"ParamName": "TestScalar",
+				"Type": 0,
+				"ScalarValue": 0.5,
+				"VectorValue": [0,0,0,0],
+				"Index": 1
+			}
+		]
+	}
+
+}

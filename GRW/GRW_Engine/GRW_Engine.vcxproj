@@ -167,6 +167,7 @@
     <ClCompile Include="IMGUI\imgui_widgets.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MaterialEditor.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -366,6 +367,7 @@
     <ClInclude Include="IMGUI\imstb_truetype.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MaterialEditor.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Shader.h" />
@@ -380,6 +382,7 @@
   <ItemGroup>
     <None Include="Assets\Materials\PBRTestMaterial.mimp" />
     <None Include="Shaders\Buffers.hlsli" />
+    <None Include="Shaders\MaterialShaders\BasePBR.msimp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

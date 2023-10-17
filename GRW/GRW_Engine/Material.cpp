@@ -210,6 +210,24 @@ MaterialAsset::~MaterialAsset()
 
 }
 
+void MaterialAsset::CreateMaterial(Renderer* renderer, MaterialAssetData const * const MatData)
+{
+	VShader = MatData->vs;
+	PShader = MatData->ps;
+	MaterialName = MatData->Name;
+
+	blendMode = MatData->blend;
+	cullMode = MatData->cull;
+	fillMode = MatData->fill;
+
+	InitialiseParamBuffer(MatData->parameters);
+	InitialiseTextureParam(MatData->textureParams);
+
+	CreateBuffer(renderer);
+	CreateBlendState(renderer);
+	CreateRasterizerState(renderer);
+}
+
 void MaterialAsset::CreateMaterial(Renderer* renderer, std::string name, VertexShader* vs, PixelShader* ps, std::vector<ShaderParam> const& param, std::vector<TexParam> const& texParam, BlendMode blend, CullMode cull, FillMode fill)
 {
 	VShader = vs;

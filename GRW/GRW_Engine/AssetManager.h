@@ -14,6 +14,7 @@ class Renderer;
 struct TextureImportSetting;
 class MaterialAsset;
 struct MaterialAssetData;
+struct MaterialShader;
 
 class AssetManager
 {
@@ -37,12 +38,14 @@ private:
 	Renderer* renderer;
 	std::map<std::string, TextureImportSetting> TextureImportSettings;
 	std::map<std::string, MaterialAssetData> MaterialImportData;
+	std::map<std::string, MaterialShader> MaterialShaderImportData;
 
 	std::map<std::string,std::string> TexturePaths;
 	std::map<std::string,std::string> MeshPaths;
 	std::map<std::string,std::string> VertexShaderPaths;
 	std::map<std::string,std::string> PixelShaderPaths;
-	std::map<std::string,std::string> MaterialPaths;
+	std::map<std::string,std::string> MaterialAssetPaths;
+	std::map<std::string,std::string> MaterialShaderPaths;
 
 	std::map<std::string, Texture2D> TextureMap;
 	std::map<std::string, Mesh> MeshMap;
@@ -65,6 +68,12 @@ template<>
 inline MaterialAsset* AssetManager::GetAsset<MaterialAsset>(std::string const& name)
 {
 	return &MaterialAssetMap[name];
+}
+
+template<>
+inline MaterialAssetData* AssetManager::GetAsset<MaterialAssetData>(std::string const& name)
+{
+	return &MaterialImportData[name];
 }
 
 template<>

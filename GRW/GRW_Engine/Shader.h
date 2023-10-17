@@ -4,8 +4,13 @@
 #include <d3dcompiler.h>
 #include <wrl.h>
 #include "Debug.h"
+#include <vector>
+#include "Vector.h"
+
 
 class Renderer;
+
+
 
 
 class VertexShader
@@ -47,4 +52,35 @@ private:
 	void LoadShaderFromFile();
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> PixShader;
 	Microsoft::WRL::ComPtr <ID3DBlob> pshaderBlob;
+};
+
+enum ShaderParamType {
+	SCALAR = 0,
+	VECTOR
+};
+
+struct ShaderTextureParam
+{
+	std::string paramName;
+	std::string defaultTexture;
+	UINT bindSlot;
+};
+
+struct ShaderConstantParam
+{
+	std::string paramName;
+	ShaderParamType paramType;
+	UINT paramIndex;
+	float defaultScalarValue;
+	Vector4 defaultVectorValue;
+};
+
+struct MaterialShader
+{
+	std::string MaterialShaderName;
+	std::string VSName;
+	std::string PSName;
+
+	std::vector<ShaderTextureParam> TextureParameters;
+	std::vector<ShaderConstantParam> ShaderParameters;
 };

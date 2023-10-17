@@ -28,6 +28,15 @@ void AssetManager::GetAllLoadedMeshNames(std::vector<std::string>& names)
 	}
 }
 
+void AssetManager::GetAllLoadedMaterialNames(std::vector<std::string>& names)
+{
+	for (std::map<std::string, std::string>::iterator it = MaterialAssetPaths.begin(); it != MaterialAssetPaths.end(); it++)
+	{
+		names.push_back(it->first);
+	}
+
+}
+
 AssetManager::AssetManager()
 {
 
@@ -71,7 +80,6 @@ void AssetManager::LoadAssetPaths()
 		DEBUG(name.c_str() << " : " << p.c_str());
 	}
 
-
 	//Load pixel shader paths
 	path = "../Shaders/PixelCSO";
 	for (const auto& entry : std::filesystem::directory_iterator(path))
@@ -83,6 +91,20 @@ void AssetManager::LoadAssetPaths()
 		DEBUG(name.c_str() << " : " << p.c_str());
 	}
 
+	//Load Material Shader paths
+	path = "../Shaders/MaterialShaders";
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		std::string p = entry.path().string();
+		p.replace(p.find("\\"), 1, "/");
+		std::string name = GetFileNameFromPath(p);
+		if (name.find(".msimp") != std::string::npos)
+		{
+			MaterialShaderPaths.insert({ name, p });
+			DEBUG(name.c_str() << " : " << p.c_str());
+		}
+	}
+	
 	//Load material paths
 	path = "../Assets/Materials";
 	for (const auto& entry : std::filesystem::directory_iterator(path))
@@ -90,10 +112,13 @@ void AssetManager::LoadAssetPaths()
 		std::string p = entry.path().string();
 		p.replace(p.find("\\"), 1, "/");
 		std::string name = GetFileNameFromPath(p);
-		MaterialPaths.insert({ name, p });
-		DEBUG(name.c_str() << " : " << p.c_str());
+		if (name.find(".mimp") != std::string::npos)
+		{
+			MaterialAssetPaths.insert({ name, p });
+			DEBUG(name.c_str() << " : " << p.c_str());
+		}
+	
 	}
-
 
 }
 
@@ -150,11 +175,52 @@ void AssetManager::LoadShaderAssets()
 		PixelShaderMap.insert({ it->first, PixelShader(it->second) });
 		PixelShaderMap[it->first].CreateShader(renderer);
 	}
+
+	for (std::map<std::string, std::string>::iterator it = MaterialShaderPaths.begin(); it != MaterialShaderPaths.end(); it++)
+	{
+		std::ifstream f(it->second);
+		nlohmann::json  materialShaderImport = nlohmann::json::parse(f);
+		nlohmann::json materialShaderData = materialShaderImport["MaterialShader"];
+		MaterialShader materialShader;
+
+		materialShader.MaterialShaderName = materialShaderData["Name"];
+		materialShader.VSName = materialShaderData["Shader"]["Vertex"];
+		materialShader.PSName = materialShaderData["Shader"]["Pixel"];
+
+		int textureParamSize = materialShaderData["Textures"].size();
+
+		for (int i = 0; i < textureParamSize; i++)
+		{
+			ShaderTextureParam tParam;
+			tParam.paramName = materialShaderData["Textures"][i]["ParameterName"];
+			tParam.defaultTexture = materialShaderData["Textures"][i]["DefaultTextureName"];
+			tParam.bindSlot = materialShaderData["Textures"][i]["BindSlot"];
+			materialShader.TextureParameters.push_back(tParam);
+		}
+
+		int paramSize = materialShaderData["Parameters"].size();
+		for (int i = 0; i < paramSize; i++)
+		{
+			ShaderConstantParam param;
+			param.paramName = materialShaderData["Parameters"][i]["ParamName"];
+			param.paramType = static_cast<ShaderParamType>(materialShaderData["Parameters"][i]["Type"]);
+			param.paramIndex = materialShaderData["Parameters"][i]["Index"];
+			param.defaultScalarValue = materialShaderData["Parameters"][i]["ScalarValue"];
+			param.defaultVectorValue.x = materialShaderData["Parameters"][i]["VectorValue"][0];
+			param.defaultVectorValue.y = materialShaderData["Parameters"][i]["VectorValue"][1];
+			param.defaultVectorValue.z = materialShaderData["Parameters"][i]["VectorValue"][2];
+			param.defaultVectorValue.w = materialShaderData["Parameters"][i]["VectorValue"][3];
+			materialShader.ShaderParameters.push_back(param);
+		}
+
+		MaterialShaderImportData.insert({ it->first, materialShader });
+	}
+
 }
 
 void AssetManager::LoadMaterialAssets()
 {
-	for (std::map<std::string, std::string>::iterator it = MaterialPaths.begin(); it != MaterialPaths.end(); it++)
+	for (std::map<std::string, std::string>::iterator it = MaterialAssetPaths.begin(); it != MaterialAssetPaths.end(); it++)
 	{
 		std::ifstream f(it->second);
 		nlohmann::json  materialImport = nlohmann::json::parse(f);
@@ -207,9 +273,12 @@ void AssetManager::LoadMaterialAssets()
 	for (std::map<std::string, MaterialAssetData>::iterator it = MaterialImportData.begin(); it != MaterialImportData.end(); it++)
 	{
 		MaterialAssetMap.insert({it->first, MaterialAsset()});
+		MaterialAssetMap[it->first].CreateMaterial(renderer, &it->second);
+		/*
 		MaterialAssetMap[it->first].CreateMaterial(renderer, it->second.Name, it->second.vs, it->second.ps, it->second.parameters,
 			it->second.textureParams, it->second.blend,
 			it->second.cull, it->second.fill);
+		*/
 	}
 }
 

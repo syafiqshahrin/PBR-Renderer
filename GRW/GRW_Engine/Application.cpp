@@ -27,6 +27,7 @@
 #include "Sampler.h"
 #include "Material.h"
 #include "AssetManager.h"
+#include "MaterialEditor.h"
 
 Application::Application(LPCWSTR AppTitle, int w, int h, HINSTANCE hInstance)
 {
@@ -160,6 +161,11 @@ int Application::ApplicationUpdate()
     MaterialAsset* basePBRMat = AssetManager::GetAssetManager()->GetAsset<MaterialAsset>("PBRTestMaterial.mimp");
 
 #pragma endregion
+
+#pragma region MaterialEditorTest
+    MaterialEditor materialEditor;
+#pragma endregion
+
 
 #pragma region Scene stuff
     //Scene
@@ -462,6 +468,8 @@ int Application::ApplicationUpdate()
                 ImGui::End();
             }
 
+            materialEditor.RenderEditorWindow();
+
             if (ImGui::Begin("Asset List"))
             {
                 if (ImGui::CollapsingHeader("Loaded Textures"))
@@ -526,6 +534,10 @@ int Application::ApplicationUpdate()
         Deltatime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count() / 1000.0f;
         //DEBUG("Time difference = " << deltaTime);
     }
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
     return 0;
 
 }
