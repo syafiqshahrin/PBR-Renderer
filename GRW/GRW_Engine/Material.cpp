@@ -316,3 +316,16 @@ void MaterialAsset::GetTextureParamNames(std::vector<std::string>& Textures)
 		Textures.push_back(it->first);
 	}
 }
+
+void MaterialAsset::GetTextureNames(std::vector<std::string>& Textures)
+{
+	for (std::map<std::string, TexParam>::iterator it = TextureParams.begin(); it != TextureParams.end(); it++)
+	{
+		Textures.push_back(it->second.texture->GetName());
+	}
+}
+
+UINT MaterialAsset::GetTextureParamBindSlot(std::string TexParamName)
+{
+	return TextureParams[TexParamName].bindSlot;
+}

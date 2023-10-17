@@ -289,7 +289,7 @@ int Application::ApplicationUpdate()
     SpecularEnvMap.RenderPrefilteredCubeWithMips(AppRenderer, AppWindow, HDRICubeMap, *specEnvVertShader, *specEnvPixShader);
     SpecularEnvMap.BindTexture(AppRenderer, 4);
 
-    Texture2D SpecularIntegrationBRDF;
+    Texture2D SpecularIntegrationBRDF("SpecularBRDF");
     SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer,512, 512, 16, 2, DXGI_FORMAT_R16G16_UNORM);
     SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, *specBRDFVertShader, *specBRDFPixShader);
     SpecularIntegrationBRDF.BindTexture(AppRenderer, 5);

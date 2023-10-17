@@ -23,9 +23,17 @@ Texture2D::Texture2D()
     IsRenderTexture = true;
     HDR = false;
 }
-
-Texture2D::Texture2D(std::string filepath, int c, bool hdr)
+Texture2D::Texture2D(std::string name)
 {
+    TextureName = name;
+    FilePath = "";
+    IsRenderTexture = true;
+    HDR = false;
+}
+
+Texture2D::Texture2D(std::string name, std::string filepath, int c, bool hdr)
+{
+    TextureName = name;
     FilePath = filepath;
     IsRenderTexture = false;
     component = c;
@@ -245,6 +253,16 @@ void Texture2D::ReleaseTexture()
         TextureShaderView->Release();
     if (IsRenderTexture && TextureRenderView != nullptr)
         TextureRenderView->Release();
+}
+
+const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Texture2D::GetSRV()
+{
+    return TextureShaderView;
+}
+
+std::string Texture2D::GetName()
+{
+    return TextureName;
 }
 
 void Texture2D::LoadTextureFromFile()

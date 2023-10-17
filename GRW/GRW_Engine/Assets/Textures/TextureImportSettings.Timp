@@ -1,94 +1,117 @@
 {
-	"Textures":
-	[
+	"Textures": [
 		{
 			"name": "Diffuse.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 29
+			"GenerateMips": true,
+			"Format": 29
 		},
 		{
 			"name": "Mixed.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 28
+			"GenerateMips": true,
+			"Format": 28
 		},
 		{
 			"name": "Normal.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 28
+			"GenerateMips": true,
+			"Format": 28
 		},
 		{
 			"name": "resting_place_2_2k.hdr",
 			"Components": 4,
 			"HDR": true,
 			"BitsPerPixel": 8,
-			"GenerateMips" : false,
-			"Format" : 28
+			"GenerateMips": false,
+			"Format": 28
 		},
 		{
 			"name": "rural_asphalt_road_2k.hdr",
 			"Components": 4,
 			"HDR": true,
 			"BitsPerPixel": 8,
-			"GenerateMips" : false,
-			"Format" : 28
+			"GenerateMips": false,
+			"Format": 28
 		},
 		{
 			"name": "TexturedSurface_basecolor.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 29
+			"GenerateMips": true,
+			"Format": 29
 		},
 		{
 			"name": "TexturedSurface_normal.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 28
+			"GenerateMips": true,
+			"Format": 28
 		},
 		{
 			"name": "TexturedSurface_RMA.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 28
+			"GenerateMips": true,
+			"Format": 28
 		},
-				{
+		{
 			"name": "TexturedSurface2_basecolor.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 29
+			"GenerateMips": true,
+			"Format": 29
 		},
 		{
 			"name": "TexturedSurface2_normal.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 28
+			"GenerateMips": true,
+			"Format": 28
 		},
 		{
 			"name": "TexturedSurface2_RMA.png",
 			"Components": 4,
 			"HDR": false,
 			"BitsPerPixel": 8,
-			"GenerateMips" : true,
-			"Format" : 28
+			"GenerateMips": true,
+			"Format": 28
+		},
+		{
+			"name": "Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 29
+		},
+		{
+			"name": "Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 28
+		},
+		{
+			"name": "Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 28
 		}
-	
+
 	]
 }

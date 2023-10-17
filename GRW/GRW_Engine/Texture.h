@@ -24,7 +24,8 @@ class Texture2D
 {
 public:
 	Texture2D();
-	Texture2D(std::string filepath, int c = 4, bool hdr = false);
+	Texture2D(std::string name);
+	Texture2D(std::string name, std::string filepath, int c = 4, bool hdr = false);
 	~Texture2D();
 	bool CreateTextureFromFile(Renderer* renderer, int bitsperpixel = 8, bool genMips = true, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
 	bool CreateRenderTexture(Renderer* renderer, int w, int h, int bitsperpixel = 8, int c = 4, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -33,7 +34,10 @@ public:
 	void RenderToTexture(Renderer* renderer, Window* wndw, VertexShader const& vertShader, PixelShader const& pixShader);
 	void ReleaseTexture();
 	void SetFilePath(std::string path);
+	const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSRV();
+	std::string GetName();
 private:
+	std::string TextureName;
 	void LoadTextureFromFile();
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture2DResource;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureShaderView;

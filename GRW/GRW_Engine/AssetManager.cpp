@@ -147,7 +147,7 @@ void AssetManager::LoadTextureAssets()
 	{
 		TextureImportSetting T = TextureImportSettings[it->first];
 
-		TextureMap.insert({it->first, Texture2D(it->second, T.Components, T.HDR)});
+		TextureMap.insert({it->first, Texture2D(it->first, it->second, T.Components, T.HDR)});
 		TextureMap[it->first].CreateTextureFromFile(renderer, T.BitsPerPixel, T.GenerateMips, T.Format);
 	}
 

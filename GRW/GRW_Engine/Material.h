@@ -99,7 +99,8 @@ public:
 
 	void SetTexture(std::string TexName, Texture2D* tex, UINT bindslot, bool IsRT);
 	void GetTextureParamNames(std::vector<std::string> &Textures);
-
+	void GetTextureNames(std::vector<std::string>& Textures);
+	UINT GetTextureParamBindSlot(std::string TexParamName);
 	void BindMaterial(Renderer* renderer);
 	void UpdateMaterial(Renderer* renderer);
 private:

@@ -23,11 +23,15 @@ public:
 private:
 
 	std::vector<std::string> MaterialList;
+	std::vector<std::string> MaterialTextureList;
+	std::vector<std::string> MaterialTextureParamList;
+	std::vector<const char*> MaterialListChar;
 	int CurrentMaterialIndex;
 	MaterialAsset* CurrentMaterial;
 	MaterialAssetData* CurrentMaterialData;
 
 	void GenerateMaterialList();
+	void GenerateMaterialTextureList();
 	void ChangeSelectedMaterial(UINT index);
 
 
