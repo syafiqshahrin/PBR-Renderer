@@ -24,20 +24,7 @@ struct VSOutput
 // - MNorm
 //buffer 2 should be saved for per material
 
-cbuffer Cbuffer : register(b0)
-{
-	float4 time;
-	matrix MVP;
-	matrix MW;
-	matrix MC; //Mview
-	matrix MNorm;
-	float3 lightData;
-	float4 Ambient;
-	float4 CamWS;
-	float4 PLightPos;
-	float4 PLightCol;
-
-}
+#include "../Shaders/Buffers.hlsli"
 
 //Define by Material
 Texture2D DiffuseTex: register(t0);
@@ -140,8 +127,8 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float timeScaled = time.x * 0.01;
 	
 	//Can move to cbuffer later on
-	float lightIntensity = 1;
-	float4 lightCol = float4(1,1,1,1) * lightIntensity;
+	float lightIntensity = DirectionaLightWS.w;
+	float3 lightCol = DirectionaLightColor.rgb * lightIntensity;
 
 	//Normal and Tangent
 	float sign = pIN.tangent.w < 0 ? -1 : 1;
@@ -170,7 +157,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	//float4 Ambient = IrradianceMap.Sample(samplerTest, Nv.xyz);
 
 	//for Directional Light
-	float3 L0 = normalize(lightData * -1) ;
+	float3 L0 = normalize(DirectionaLightWS.rgb * -1) ;
 	float3 H0 = normalize(L0 + V);
 	float NDL0 = saturate(dot(N, L0));
 
