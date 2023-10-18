@@ -199,5 +199,6 @@
     <None Include="Assets\Materials\PBRTestMaterial.mimp" />
     <None Include="Shaders\Buffers.hlsli" />
     <None Include="Shaders\MaterialShaders\BasePBR.msimp" />
+    <None Include="Shaders\Lighting.hlsli" />
   </ItemGroup>
 </Project>

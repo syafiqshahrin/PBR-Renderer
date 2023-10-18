@@ -262,7 +262,7 @@ void MaterialEditor::RenderMaterialCreatorWindow()
 {
     ImGui::Text("Material Shader");
     ImGui::SameLine(150);
-    RenderMaterialDropDown();
+    RenderMaterialShaderDropdown();
     static char textbuffer[40];
 
     ImGui::Text("Material Name");

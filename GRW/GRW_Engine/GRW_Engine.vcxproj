@@ -382,6 +382,7 @@
   <ItemGroup>
     <None Include="Assets\Materials\PBRTestMaterial.mimp" />
     <None Include="Shaders\Buffers.hlsli" />
+    <None Include="Shaders\Lighting.hlsli" />
     <None Include="Shaders\MaterialShaders\BasePBR.msimp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
