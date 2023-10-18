@@ -326,7 +326,7 @@ int Application::ApplicationUpdate()
         Vector3 rot = MainObject.GetRotation();
         //rot.z += 0.1f * deltaTime;
         //rot.x += 0.2f * deltaTime;
-        rot.y += 0.1f * Deltatime;
+        rot.y += 0.05f * Deltatime;
         rot.y = fmod(rot.y, 360.0f);
 
         //updating cbuffer struct
