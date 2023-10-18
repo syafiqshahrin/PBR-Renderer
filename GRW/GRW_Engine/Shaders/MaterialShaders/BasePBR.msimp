@@ -28,18 +28,20 @@
 		"Parameters":
 		[
 			{
-				"ParamName": "TestColor",
+				"ParamName": "Tiling",
 				"Type": 1,
 				"ScalarValue": 0,
-				"VectorValue": [1,1,1,1],
-				"Index": 0
+				"VectorValue": [ 1, 1, 1, 1 ],
+				"Index": 0,
+				"Offset": 0
 			},
 			{
 				"ParamName": "TestScalar",
 				"Type": 0,
 				"ScalarValue": 0.5,
-				"VectorValue": [0,0,0,0],
-				"Index": 1
+				"VectorValue": [ 0, 0, 0, 0 ],
+				"Index": 1,
+				"Offset": 4
 			}
 		]
 	}

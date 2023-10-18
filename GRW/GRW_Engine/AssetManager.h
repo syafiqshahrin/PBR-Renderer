@@ -3,17 +3,18 @@
 #include <vector>
 #include <map>
 #include <type_traits>
+#include "json.hpp"
+#include <fstream>
+#include "Material.h"
+#include"Texture.h"
 
-
-class Texture2D;
-class TextureCube;
 class Mesh;
 class VertexShader;
 class PixelShader;
 class Renderer;
 struct TextureImportSetting;
-class MaterialAsset;
-struct MaterialAssetData;
+//class MaterialAsset;
+//struct MaterialAssetData;
 struct MaterialShader;
 
 class AssetManager
@@ -31,6 +32,12 @@ public:
 	void GetAllLoadedTextureNames(std::vector<std::string>& names);
 	void GetAllLoadedMeshNames(std::vector<std::string> &names);
 	void GetAllLoadedMaterialNames(std::vector<std::string>& names);
+	void GetAllLoadedMaterialShaderNames(std::vector<std::string>& names);
+	
+	void CreateMaterialDataAsset(std::string name, std::string matShader);
+
+	template<typename T>
+	void SaveAsset(std::string const& name);
 
 private:
 	AssetManager();
@@ -101,3 +108,49 @@ inline PixelShader* AssetManager::GetAsset<PixelShader>(std::string const& name)
 	return &PixelShaderMap[name];
 }
 
+template<>
+inline MaterialShader* AssetManager::GetAsset<MaterialShader>(std::string const& name)
+{
+	return &MaterialShaderImportData[name];
+}
+
+template<>
+inline void AssetManager::SaveAsset<MaterialAssetData>(std::string const& name)
+{
+	MaterialAssetData* m = &MaterialImportData[name];
+	std::ifstream f(MaterialAssetPaths[name]);
+
+	nlohmann::json mimp = nlohmann::json::parse(f);
+
+	mimp["Material"]["Name"] = m->Name;
+
+	for (int i = 0; i < m->textureParams.size(); i++)
+	{
+		mimp["Material"]["Textures"][i]["ParameterName"] = m->textureParams[i].paramName;
+		mimp["Material"]["Textures"][i]["TextureName"] = m->textureParams[i].texture->GetName();
+		mimp["Material"]["Textures"][i]["BindSlot"] = m->textureParams[i].bindSlot;
+	}
+
+	for (int i = 0; i < m->parameters.size(); i++)
+	{
+		mimp["Material"]["Parameters"][i]["ParamName"] = m->parameters[i].paramName;
+		mimp["Material"]["Parameters"][i]["Type"] = static_cast<int>(m->parameters[i].type);
+		mimp["Material"]["Parameters"][i]["Offset"] = m->parameters[i].offset;
+		mimp["Material"]["Parameters"][i]["ScalarValue"] = m->parameters[i].valueF;
+		mimp["Material"]["Parameters"][i]["VectorValue"][0] = m->parameters[i].valueV.x;
+		mimp["Material"]["Parameters"][i]["VectorValue"][1] = m->parameters[i].valueV.y;
+		mimp["Material"]["Parameters"][i]["VectorValue"][2] = m->parameters[i].valueV.z;
+		mimp["Material"]["Parameters"][i]["VectorValue"][3] = m->parameters[i].valueV.w;
+	}
+
+	mimp["Material"]["Shader"]["Vertex"] = m->ms->VSName;
+	mimp["Material"]["Shader"]["Pixel"] = m->ms->PSName;
+
+	mimp["Material"]["Blend"] = static_cast<int>(m->blend);
+	mimp["Material"]["Cull"] = static_cast<int>(m->cull);
+	mimp["Material"]["Fill"] = static_cast<int>(m->fill);
+
+	std::ofstream o(MaterialAssetPaths[name]);
+	o << std::setw(4) << mimp << std::endl;
+
+}

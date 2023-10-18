@@ -37,6 +37,105 @@ void AssetManager::GetAllLoadedMaterialNames(std::vector<std::string>& names)
 
 }
 
+void AssetManager::GetAllLoadedMaterialShaderNames(std::vector<std::string>& names)
+{
+	for (std::map<std::string, std::string>::iterator it = MaterialShaderPaths.begin(); it != MaterialShaderPaths.end(); it++)
+	{
+		names.push_back(it->first);
+	}
+
+}
+
+void AssetManager::CreateMaterialDataAsset(std::string name, std::string matShader)
+{
+	MaterialShader* ms = &MaterialShaderImportData[matShader];
+	nlohmann::json mimp;
+	//mimp["Material"];
+	mimp["Material"]["Name"] = name;
+	for (int i = 0; i < ms->TextureParameters.size(); i++)
+	{
+		mimp["Material"]["Textures"].push_back({ {"BindSlot", ms->TextureParameters[i].bindSlot}, {"ParameterName", ms->TextureParameters[i].paramName}, {"TextureName", ms->TextureParameters[i].defaultTexture}});
+	}
+	for (int i = 0; i < ms->ShaderParameters.size(); i++)
+	{
+		mimp["Material"]["Parameters"].push_back
+			({	{"Offset", ms->ShaderParameters[i].offset}, 
+				{"ParamName", ms->ShaderParameters[i].paramName}, 
+				{"Type", ms->ShaderParameters[i].paramType}, 
+				{"ScalarValue", ms->ShaderParameters[i].defaultScalarValue},
+				{"VectorValue", 
+					{ms->ShaderParameters[i].defaultVectorValue.x, 
+					ms->ShaderParameters[i].defaultVectorValue.y, 
+					ms->ShaderParameters[i].defaultVectorValue.z,
+					ms->ShaderParameters[i].defaultVectorValue.w} 
+				}
+			});
+	}
+	mimp["Material"]["Shader"]["MaterialShader"] = matShader;
+	mimp["Material"]["Shader"]["Pixel"] = ms->PSName;
+	mimp["Material"]["Shader"]["Vertex"] = ms->VSName;
+
+	mimp["Material"]["Cull"] = 0;
+	mimp["Material"]["Blend"] = 0;
+	mimp["Material"]["Fill"] = 0;
+
+	std::string fName = name + ".mimp";
+	std::string path = "../Assets/Materials/" + fName;
+	
+	MaterialAssetPaths.insert({ fName, path});
+
+	//Create material asset data
+	MaterialAssetData matData;
+
+	int textureParamSize = mimp["Material"]["Textures"].size();
+	for (int i = 0; i < textureParamSize; i++)
+	{
+		TexParam tParam;
+		tParam.paramName = mimp["Material"]["Textures"][i]["ParameterName"];
+		std::string texName = mimp["Material"]["Textures"][i]["TextureName"];
+		tParam.texture = &TextureMap[texName];
+		tParam.IsRenderTexture = false;
+		tParam.bindSlot = mimp["Material"]["Textures"][i]["BindSlot"];
+		matData.textureParams.push_back(tParam);
+	}
+
+	int paramSize = mimp["Material"]["Parameters"].size();
+	for (int i = 0; i < paramSize; i++)
+	{
+		ShaderParam param;
+		param.paramName = mimp["Material"]["Parameters"][i]["ParamName"];
+		param.type = static_cast<ShaderParamType>(mimp["Material"]["Parameters"][i]["Type"]);
+		param.offset = mimp["Material"]["Parameters"][i]["Offset"];
+		param.valueF = mimp["Material"]["Parameters"][i]["ScalarValue"];
+		param.valueV.x = mimp["Material"]["Parameters"][i]["VectorValue"][0];
+		param.valueV.y = mimp["Material"]["Parameters"][i]["VectorValue"][1];
+		param.valueV.z = mimp["Material"]["Parameters"][i]["VectorValue"][2];
+		param.valueV.w = mimp["Material"]["Parameters"][i]["VectorValue"][3];
+		matData.parameters.push_back(param);
+		matData.parametersMap.insert({ param.paramName, param });
+	}
+
+	matData.blend = static_cast<BlendMode>(mimp["Material"]["Blend"]);
+	matData.cull = static_cast<CullMode>(mimp["Material"]["Cull"]);
+	matData.fill = static_cast<FillMode>(mimp["Material"]["Fill"]);
+
+	std::string vsName = mimp["Material"]["Shader"]["Vertex"];
+	std::string psName = mimp["Material"]["Shader"]["Pixel"];
+	matData.vs = &VertexShaderMap[vsName];
+	matData.ps = &PixelShaderMap[psName];
+	matData.ms = &MaterialShaderImportData[mimp["Material"]["Shader"]["MaterialShader"]];
+	matData.Name = mimp["Material"]["Name"];
+	MaterialImportData.insert({ fName, matData });
+
+	//Create material
+	MaterialAssetMap.insert({ fName, MaterialAsset() });
+	MaterialAssetMap[fName].CreateMaterial(renderer, &matData);
+
+	//Save asset to disk
+	std::ofstream o(path);
+	o << std::setw(4) << mimp << std::endl;
+}
+
 AssetManager::AssetManager()
 {
 
@@ -205,6 +304,7 @@ void AssetManager::LoadShaderAssets()
 			param.paramName = materialShaderData["Parameters"][i]["ParamName"];
 			param.paramType = static_cast<ShaderParamType>(materialShaderData["Parameters"][i]["Type"]);
 			param.paramIndex = materialShaderData["Parameters"][i]["Index"];
+			param.offset = materialShaderData["Parameters"][i]["Offset"];
 			param.defaultScalarValue = materialShaderData["Parameters"][i]["ScalarValue"];
 			param.defaultVectorValue.x = materialShaderData["Parameters"][i]["VectorValue"][0];
 			param.defaultVectorValue.y = materialShaderData["Parameters"][i]["VectorValue"][1];
@@ -255,6 +355,7 @@ void AssetManager::LoadMaterialAssets()
 			param.valueV.z = materialAssetData["Parameters"][i]["VectorValue"][2];
 			param.valueV.w = materialAssetData["Parameters"][i]["VectorValue"][3];
 			matData.parameters.push_back(param);
+			matData.parametersMap.insert({ param.paramName, param });
 		}
 
 		matData.blend = static_cast<BlendMode>(materialAssetData["Blend"]);
@@ -265,7 +366,7 @@ void AssetManager::LoadMaterialAssets()
 		std::string psName = materialAssetData["Shader"]["Pixel"];
 		matData.vs = &VertexShaderMap[vsName];
 		matData.ps = &PixelShaderMap[psName];
-
+		matData.ms = &MaterialShaderImportData[materialAssetData["Shader"]["MaterialShader"]];
 		MaterialImportData.insert({it->first, matData});
 
 	}

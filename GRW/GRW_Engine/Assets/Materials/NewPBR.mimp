@@ -3,17 +3,16 @@
         "Blend": 0,
         "Cull": 0,
         "Fill": 0,
-        "Name": "PBRTestMaterial",
+        "Name": "NewPBR",
         "Parameters": [
             {
                 "Offset": 0,
                 "ParamName": "Tiling",
-                "ParameterName": "Tiling",
                 "ScalarValue": 0.0,
                 "Type": 1,
                 "VectorValue": [
-                    2.0,
-                    2.0,
+                    1.0,
+                    1.0,
                     1.0,
                     1.0
                 ]
@@ -21,7 +20,6 @@
             {
                 "Offset": 4,
                 "ParamName": "TestScalar",
-                "ParameterName": "TestScalar",
                 "ScalarValue": 0.5,
                 "Type": 0,
                 "VectorValue": [
@@ -41,17 +39,17 @@
             {
                 "BindSlot": 0,
                 "ParameterName": "Diffuse",
-                "TextureName": "Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png"
+                "TextureName": "TexturedSurface2_basecolor.png"
             },
             {
                 "BindSlot": 1,
                 "ParameterName": "Normal",
-                "TextureName": "Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png"
+                "TextureName": "TexturedSurface2_normal.png"
             },
             {
                 "BindSlot": 2,
                 "ParameterName": "RMA",
-                "TextureName": "Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png"
+                "TextureName": "TexturedSurface2_RMA.png"
             }
         ]
     }

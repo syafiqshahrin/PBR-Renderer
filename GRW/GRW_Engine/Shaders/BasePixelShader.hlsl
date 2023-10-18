@@ -26,6 +26,11 @@ struct VSOutput
 
 #include "../Shaders/Buffers.hlsli"
 
+cbuffer MaterialCBuffer : register(b2)
+{
+	float2 Tiling;
+}
+
 //Define by Material
 Texture2D DiffuseTex: register(t0);
 Texture2D NormTex: register(t1);
@@ -139,8 +144,8 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	//Textures
 	float2 uv = pIN.texcoord0;
-	uv.y *= 1;
-	uv.x *= 1;
+	uv.y *= Tiling.x;
+	uv.x *= Tiling.y;
 	float4 baseColor = DiffuseTex.Sample(samplerTest, uv);
 	float4 RMA = RMATex.Sample(samplerTest, uv);
 	float4 texNorm = NormTex.Sample(samplerTest, uv) * 2.0f - 1.0f;

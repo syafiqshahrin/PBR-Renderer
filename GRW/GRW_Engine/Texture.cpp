@@ -148,7 +148,6 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool
 
     free(TextureData);
 
-
     return true;
 }
 

@@ -59,6 +59,19 @@ bool Renderer::InitializeRenderer(HWND hWnd, int WindowWidth, int WindowHeight, 
 
     gfxContext->RSSetViewports(1, &BaseViewport);
 
+    blendStateDesc.AlphaToCoverageEnable = false;
+    blendStateDesc.IndependentBlendEnable = false;
+    blendStateDesc.RenderTarget[0].BlendEnable = true;
+    blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+    blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+    blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+    gfxDevice->CreateBlendState(&blendStateDesc, &blendState);
+    gfxContext->OMSetBlendState(blendState.Get(), NULL, 0xffffffff);
 
     //Set and bind Rasterizer State
     rasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -119,7 +132,7 @@ void Renderer::SetPrimitiveRenderingMode(const PrimType primitive)
 
 void Renderer::ClearBackbuffer()
 {
-    float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    float clearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f };
     gfxContext->ClearRenderTargetView(BackBufferRTV.Get(), clearColor);
     gfxContext->ClearDepthStencilView(DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
@@ -149,7 +162,11 @@ void Renderer::UpdateRasterizerState()
     gfxContext->RSSetState(rasterizerState.Get());
 }
 
-
+void Renderer::UpdateBlendState()
+{
+    gfxDevice->CreateBlendState(&blendStateDesc, &blendState);
+    gfxContext->OMSetBlendState(blendState.Get(), NULL, 0xffffffff);
+}
 
 
 

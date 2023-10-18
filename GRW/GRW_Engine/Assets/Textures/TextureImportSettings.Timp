@@ -111,6 +111,22 @@
 			"BitsPerPixel": 8,
 			"GenerateMips": true,
 			"Format": 28
+		},
+		{
+			"name": "White.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 28
+		},
+		{
+			"name": "Flat.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 28
 		}
 
 	]

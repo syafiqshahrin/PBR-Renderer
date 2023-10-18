@@ -374,15 +374,15 @@ int Application::ApplicationUpdate()
         basePBRMat->BindMaterial(AppRenderer);
 
         AppRenderer->ClearBackbuffer();
-        AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
-        AppRenderer->UpdateRasterizerState();
+        //AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+        //AppRenderer->UpdateRasterizerState();
         //Testing switching textures
         //DiffuseTex = AssetManager::GetAssetManager()->GetAsset<Texture2D>(Textures[SelectedTextureIndex]);
         //DiffuseTex->BindTexture(AppRenderer, 0);
         //
 
-        baseVertShader->BindShader(AppRenderer);
-        basePixShader->BindShader(AppRenderer);
+        //baseVertShader->BindShader(AppRenderer);
+        //basePixShader->BindShader(AppRenderer);
 
         //Testing switching meshes
         DefaultMesh = AssetManager::GetAssetManager()->GetAsset<Mesh>(Meshes[SelectedMeshIndex]);
@@ -408,6 +408,7 @@ int Application::ApplicationUpdate()
         HDRICubeMap.BindTexture(AppRenderer, 3);
         AppRenderer->rasterizerDesc.CullMode = D3D11_CULL_BACK;
         AppRenderer->UpdateRasterizerState();
+        AppRenderer->UpdateBlendState();
         AppRenderer->gfxContext->DrawIndexed(Skybox->GetIndexListSize(0), 0, 0);
 
 #pragma endregion

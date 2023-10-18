@@ -1,3 +1,4 @@
+#pragma once
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <wrl.h>
@@ -61,9 +62,11 @@ enum FillMode
 
 struct MaterialAssetData
 {
+	//std::string FileName;
 	std::string Name;
 	std::vector<TexParam> textureParams;
 	std::vector<ShaderParam> parameters;
+	std::map<std::string, ShaderParam> parametersMap;
 	BlendMode blend;
 	CullMode cull;
 	FillMode fill;
@@ -99,7 +102,9 @@ public:
 
 	void SetTexture(std::string TexName, Texture2D* tex, UINT bindslot, bool IsRT);
 	void GetTextureParamNames(std::vector<std::string> &Textures);
+	void GetShaderParamNames(std::vector<std::string> &params);
 	void GetTextureNames(std::vector<std::string>& Textures);
+	TexParam GetTextureParam(std::string texParamName);
 	UINT GetTextureParamBindSlot(std::string TexParamName);
 	void BindMaterial(Renderer* renderer);
 	void UpdateMaterial(Renderer* renderer);

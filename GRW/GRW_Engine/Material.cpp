@@ -60,7 +60,7 @@ void MaterialAsset::CreateBlendState(Renderer* renderer)
 void MaterialAsset::CreateRasterizerState(Renderer* renderer)
 {
 	D3D11_RASTERIZER_DESC rasterizerDesc;
-	rasterizerDesc.FrontCounterClockwise = true;
+	rasterizerDesc.FrontCounterClockwise = false;
 	rasterizerDesc.DepthBias = false;
 	rasterizerDesc.DepthBiasClamp = 0;
 	rasterizerDesc.SlopeScaledDepthBias = 0;
@@ -298,6 +298,21 @@ void MaterialAsset::SetBlendMode(BlendMode bMode)
 	blendMode = bMode;
 }
 
+CullMode MaterialAsset::GetCullMode()
+{
+	return cullMode;
+}
+
+FillMode MaterialAsset::GetFillMode()
+{
+	return fillMode;
+}
+
+BlendMode MaterialAsset::GetBlendMode()
+{
+	return blendMode;
+}
+
 void MaterialAsset::SetTexture(std::string TexParamName, Texture2D* tex,  UINT bindslot, bool IsRT)
 {
 	TexParam param;
@@ -317,12 +332,25 @@ void MaterialAsset::GetTextureParamNames(std::vector<std::string>& Textures)
 	}
 }
 
+void MaterialAsset::GetShaderParamNames(std::vector<std::string>& params)
+{
+	for (std::map<std::string, UINT>::iterator it = ParamIDs.begin(); it != ParamIDs.end(); it++)
+	{
+		params.push_back(it->first);
+	}
+}
+
 void MaterialAsset::GetTextureNames(std::vector<std::string>& Textures)
 {
 	for (std::map<std::string, TexParam>::iterator it = TextureParams.begin(); it != TextureParams.end(); it++)
 	{
 		Textures.push_back(it->second.texture->GetName());
 	}
+}
+
+TexParam MaterialAsset::GetTextureParam(std::string texParamName)
+{
+	return TextureParams[texParamName];
 }
 
 UINT MaterialAsset::GetTextureParamBindSlot(std::string TexParamName)

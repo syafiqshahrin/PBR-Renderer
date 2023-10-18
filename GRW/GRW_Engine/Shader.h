@@ -71,6 +71,7 @@ struct ShaderConstantParam
 	std::string paramName;
 	ShaderParamType paramType;
 	UINT paramIndex;
+	UINT offset;
 	float defaultScalarValue;
 	Vector4 defaultVectorValue;
 };
