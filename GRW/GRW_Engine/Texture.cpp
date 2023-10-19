@@ -66,15 +66,8 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool
 
         //only need subresource if not creating texture w generated mips
         D3D11_SUBRESOURCE_DATA texSubResourceData;
-        if (HDR)
-        {
-            texSubResourceData.pSysMem = TextureData;
 
-        }
-        else
-        {
-            texSubResourceData.pSysMem = TextureData;
-        }
+        texSubResourceData.pSysMem = TextureData;
         texSubResourceData.SysMemPitch = TexDimensionsW * component * (bitsperpixel / 8);
         texSubResourceData.SysMemSlicePitch = 0;
 
@@ -146,7 +139,7 @@ bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool
         renderer->gfxContext->GenerateMips(TextureShaderView.Get());
     }
 
-    free(TextureData);
+    stbi_image_free(TextureData);
 
     return true;
 }
