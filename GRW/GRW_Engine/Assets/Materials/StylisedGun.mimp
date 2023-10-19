@@ -1,9 +1,9 @@
 {
     "Material": {
         "Blend": 0,
-        "Cull": 2,
+        "Cull": 0,
         "Fill": 0,
-        "Name": "NewPBR",
+        "Name": "StylisedGun",
         "Parameters": [
             {
                 "Offset": 0,
@@ -39,17 +39,17 @@
             {
                 "BindSlot": 0,
                 "ParameterName": "Diffuse",
-                "TextureName": "TexturedSurface2_basecolor.png"
+                "TextureName": "Diffuse.png"
             },
             {
                 "BindSlot": 1,
                 "ParameterName": "Normal",
-                "TextureName": "TexturedSurface2_normal.png"
+                "TextureName": "Normal.png"
             },
             {
                 "BindSlot": 2,
                 "ParameterName": "RMA",
-                "TextureName": "TexturedSurface2_RMA.png"
+                "TextureName": "Mixed.png"
             }
         ]
     }

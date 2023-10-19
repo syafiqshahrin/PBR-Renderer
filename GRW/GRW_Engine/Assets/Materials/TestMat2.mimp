@@ -1,9 +1,9 @@
 {
     "Material": {
         "Blend": 0,
-        "Cull": 2,
+        "Cull": 0,
         "Fill": 0,
-        "Name": "NewPBR",
+        "Name": "TestMat2",
         "Parameters": [
             {
                 "Offset": 0,
@@ -11,8 +11,8 @@
                 "ScalarValue": 0.0,
                 "Type": 1,
                 "VectorValue": [
-                    1.0,
-                    1.0,
+                    2.0,
+                    2.0,
                     1.0,
                     1.0
                 ]
@@ -39,17 +39,17 @@
             {
                 "BindSlot": 0,
                 "ParameterName": "Diffuse",
-                "TextureName": "TexturedSurface2_basecolor.png"
+                "TextureName": "TexturedSurface_basecolor.png"
             },
             {
                 "BindSlot": 1,
                 "ParameterName": "Normal",
-                "TextureName": "TexturedSurface2_normal.png"
+                "TextureName": "TexturedSurface_normal.png"
             },
             {
                 "BindSlot": 2,
                 "ParameterName": "RMA",
-                "TextureName": "TexturedSurface2_RMA.png"
+                "TextureName": "TexturedSurface_RMA.png"
             }
         ]
     }

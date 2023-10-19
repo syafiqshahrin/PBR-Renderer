@@ -29,7 +29,7 @@ void MaterialEditor::RenderEditorWindow()
     {
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenu("Create..."))
+            if (ImGui::BeginMenu("Option..."))
             {
                 if (ImGui::MenuItem("New Material", NULL))
                 {
@@ -37,7 +37,16 @@ void MaterialEditor::RenderEditorWindow()
                     //ImGui::OpenPopup("Delete?");
                     DEBUG("Creating new material");
                 }
-                ImGui::MenuItem("Duplicate Material", NULL);
+
+                if(ImGui::MenuItem("Duplicate Material", NULL))
+                {
+
+                }
+
+                if (ImGui::MenuItem("Set As Current Material", NULL))
+                {
+                    *DisplayedMaterial = CurrentMaterial;
+                }
                 ImGui::EndMenu();
             }
 
@@ -78,6 +87,11 @@ void MaterialEditor::RenderEditorWindow()
 
 }
 
+void MaterialEditor::SetDisplayedMaterial(MaterialAsset** mat)
+{
+    DisplayedMaterial = mat;
+}
+
 void MaterialEditor::GenerateMaterialShaderList()
 {
     AssetManager::GetAssetManager()->GetAllLoadedMaterialShaderNames(MaterialShaderList);
@@ -89,6 +103,8 @@ void MaterialEditor::GenerateMaterialShaderList()
 
 void MaterialEditor::GenerateMaterialList()
 {
+    MaterialList.clear();
+    MaterialListChar.clear();
 	AssetManager::GetAssetManager()->GetAllLoadedMaterialNames(MaterialList);
     for (int i = 0; i < MaterialList.size(); i++)
     {

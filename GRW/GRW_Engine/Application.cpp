@@ -164,6 +164,7 @@ int Application::ApplicationUpdate()
 
 #pragma region MaterialEditorTest
     MaterialEditor materialEditor;
+    materialEditor.SetDisplayedMaterial(&basePBRMat);
 #pragma endregion
 
 

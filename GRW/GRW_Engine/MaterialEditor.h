@@ -19,9 +19,14 @@ public:
 	MaterialEditor();
 	~MaterialEditor();
 	void RenderEditorWindow();
+	
+	//Temporary
+	void SetDisplayedMaterial(MaterialAsset** mat);
 
 private:
-
+	//Temp
+	MaterialAsset** DisplayedMaterial;
+	
 	std::vector<std::string> MaterialShaderList;
 	std::vector<const char*> MaterialShaderListChar;
 	std::vector<std::string> MaterialList;
@@ -34,7 +39,6 @@ private:
 	MaterialAsset* CurrentMaterial;
 	MaterialAssetData* CurrentMaterialData;
 	MaterialShader* CurrentMaterialShaderData;
-
 	bool ShowMaterialCreationWindow;
 
 	void GenerateMaterialShaderList();
