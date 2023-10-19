@@ -80,12 +80,12 @@ float4 main(VSOutput pIN) : SV_TARGET
 	//for Directional Light
 	float3 L0 = normalize(DirectionaLightWS.rgb * -1) ;
 	float3 H0 = normalize(L0 + V);
-	float NDL0 = saturate(dot(N, L0));
+	float NDL0 = max(dot(N, L0), 0.0);
 
 	//for Point Light
 	float3 L1 = normalize(PLightPos.xyz - pIN.posWS.xyz);
 	float3 H1 = normalize(L1 + V);
-	float NDL1 = saturate(dot(N, L1));
+	float NDL1 = max(dot(N, L1), 0.0);
 	float dist1 = length(PLightPos.xyz - pIN.posWS.xyz);
 	float3 lightCol1 = PLightCol.rgb * (PLightCol.a * (1 / pow(dist1, 2)));
 
@@ -139,7 +139,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	float3 final = BRDF * lightCol.rgb * NDL0;
 	FinalLight = final;
-
+	
 	//for point light
 	
 	F = FresnelSchlick(baseColor.rgb, m, V, H1);
@@ -176,10 +176,10 @@ float4 main(VSOutput pIN) : SV_TARGET
 	
 	//Final Light Color
 	FinalLight += ambient;
-	
+
 	//Final Color
 	float4 color = float4(FinalLight.rgb,1);
-	float4 test = float4(specular.xyz,1);
+	//float4 test = float4(specular.xyz,1);
 	return color;
 
 }

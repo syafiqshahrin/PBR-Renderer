@@ -6,7 +6,7 @@ float3 FresnelSchlick(float3 baseC, float metal, float3 v, float3 h)
 {
 	// FresnelFactor using Fresnel-Schlick: F = F0 + (1 - F0) (1 - (dot(V, H))^5
 	float3 F0 = lerp(0.04, baseC.rgb, metal);
-	float p = pow(1 - max(dot(v, h), 0.0001), 5.0);
+	float p = pow(clamp(1 - dot(v, h), 0, 1) , 5.0);
 	float3 F = F0 + (float3(1, 1, 1) - F0) * p;
 	return F;
 }
@@ -39,7 +39,7 @@ float NormalDistributionFunction(float roughness, float3 n, float3 h)
 {
 	//Normal distribution function: (GGX Trowbridge-Reitz) D = (a ^ 2) / PI * (dot(N,H)^2 * (a^2 - 1) + 1)^2
 	float a2 = roughness * roughness;
-	float ndoth = max(dot(n, h), 0.0001);
+	float ndoth = max(dot(n, h), 0.00001);
 	float ndoth2 = ndoth * ndoth;
 	float denom1 = (ndoth2 * (a2 - 1) + 1);
 	float denom2 = denom1 * denom1;
@@ -54,7 +54,7 @@ float GeometrySelfShadowingSchlick(float roughness, float3 n, float3 x)
 	// k = a/2
 	// G1(N,X) = dot(N,X) / (dot(N, X)) * 1 - k) + k
 	float k = roughness / 2;
-	float ndotx = max(dot(n, x), 0.0001);
+	float ndotx = max(dot(n, x), 0.0);
 	float denom = ndotx * (1 - k) + k;
 	float G1 = ndotx / denom;
 	return G1;
@@ -75,9 +75,9 @@ float3 SpecularBRDF(float3 baseC, float roughness, float metallic, float3 n, flo
 	float3 F = FresnelSchlick(baseC, metallic, v, h);
 
 	float3 numerator = D * G * F;
-	float ndotv = max(dot(n, v), 0.0001);
-	float ndotl = max(dot(n, l), 0.0001);
-	float denom = 4 * ndotv * ndotl;
+	float ndotv = max(dot(n, v), 0);
+	float ndotl = max(dot(n, l), 0);
+	float denom = 4 * ndotv * ndotl + 0.0001;
 	float3 Specular = numerator / denom;
 	return Specular;
 
