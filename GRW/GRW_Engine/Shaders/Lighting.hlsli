@@ -77,7 +77,7 @@ float3 SpecularBRDF(float3 baseC, float roughness, float metallic, float3 n, flo
 	float3 numerator = D * G * F;
 	float ndotv = max(dot(n, v), 0);
 	float ndotl = max(dot(n, l), 0);
-	float denom = 4 * ndotv * ndotl + 0.0001;
+	float denom = 4 * ndotv  + 0.0001;
 	float3 Specular = numerator / denom;
 	return Specular;
 
