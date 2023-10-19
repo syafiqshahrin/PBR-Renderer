@@ -1,0 +1,68 @@
+{
+    "Material": {
+        "Blend": 0,
+        "Cull": 0,
+        "Fill": 0,
+        "Name": "SimpleLighting",
+        "Parameters": [
+            {
+                "Offset": 0,
+                "ParamName": "Tiling",
+                "ScalarValue": 0.0,
+                "Type": 1,
+                "VectorValue": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            {
+                "Offset": 4,
+                "ParamName": "SpecularStrength",
+                "ScalarValue": 1.0,
+                "Type": 0,
+                "VectorValue": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            {
+                "Offset": 8,
+                "ParamName": "Ambient",
+                "ScalarValue": 1.0,
+                "Type": 2,
+                "VectorValue": [
+                    0.31221717596054077,
+                    0.2896132171154022,
+                    0.2896132171154022,
+                    1.0
+                ]
+            }
+        ],
+        "Shader": {
+            "MaterialShader": "BlinnPhong.msimp",
+            "Pixel": "BlinnPhongPixelShader.cso",
+            "Vertex": "BaseVertexShader.cso"
+        },
+        "Textures": [
+            {
+                "BindSlot": 0,
+                "ParameterName": "Diffuse",
+                "TextureName": "Homestead_Cliff_Mat__Warmer_Higher_Detail_basecolor.png"
+            },
+            {
+                "BindSlot": 1,
+                "ParameterName": "Normal",
+                "TextureName": "Homestead_Cliff_Mat__Warmer_Higher_Detail_normal.png"
+            },
+            {
+                "BindSlot": 2,
+                "ParameterName": "Specular",
+                "TextureName": "Homestead_Cliff_Mat__Warmer_Higher_Detail_RMA.png"
+            }
+        ]
+    }
+}

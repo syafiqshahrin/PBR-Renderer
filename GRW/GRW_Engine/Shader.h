@@ -56,7 +56,8 @@ private:
 
 enum ShaderParamType {
 	SCALAR = 0,
-	VECTOR
+	VECTOR, 
+	COLOR
 };
 
 struct ShaderTextureParam

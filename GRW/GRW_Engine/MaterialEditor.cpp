@@ -182,7 +182,7 @@ void MaterialEditor::RenderTextureParameters()
 
     if (ImGui::BeginPopup("my_select_popup"))
     {
-        DEBUG("Loop - " << currentIndex);
+        //DEBUG("Loop - " << currentIndex);
         std::vector<std::string> LoadedTextures;
         AssetManager::GetAssetManager()->GetAllLoadedTextureNames(LoadedTextures);
         std::vector<std::string>::iterator it = std::find(LoadedTextures.begin(), LoadedTextures.end(), MaterialTextureList[currentIndex]);
@@ -223,11 +223,18 @@ void MaterialEditor::RenderShaderParameters()
             ImGui::DragFloat("##", &val, 0.1f);
             CurrentMaterial->SetScalarParam(MaterialShaderParamList[i], val);
         }
-        else
+        else if(CurrentMaterialData->parametersMap[MaterialShaderParamList[i]].type == ShaderParamType::VECTOR)
         {
             Vector4 val = CurrentMaterial->GetVectorParam(MaterialShaderParamList[i]);
             float v[4] = { val.x, val.y, val.z, val.w };
             ImGui::DragFloat4("##", v, 0.1f);
+            CurrentMaterial->SetVectorParam(MaterialShaderParamList[i], Vector4(v[0], v[1], v[2], v[3]));
+        }
+        else
+        {
+            Vector4 val = CurrentMaterial->GetVectorParam(MaterialShaderParamList[i]);
+            float v[4] = { val.x, val.y, val.z, val.w };
+            ImGui::ColorEdit4("##", v, 0.1f);
             CurrentMaterial->SetVectorParam(MaterialShaderParamList[i], Vector4(v[0], v[1], v[2], v[3]));
         }
     }

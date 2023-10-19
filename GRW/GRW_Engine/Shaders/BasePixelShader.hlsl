@@ -68,7 +68,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 
 	//Lighting Vectors
-	float3 N = normalize(texNorm.x * T + texNorm.y * B + texNorm.z * Nv);
+	float3 N = GetTangentToWorlNormals(texNorm, T, Nv, B);
 	float3 V = normalize(CamWS.rgb - pIN.posWS.xyz);
 
 	//environment map temp

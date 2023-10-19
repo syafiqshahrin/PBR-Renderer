@@ -83,6 +83,11 @@ float3 SpecularBRDF(float3 baseC, float roughness, float metallic, float3 n, flo
 
 }
 
+float3 GetTangentToWorlNormals(float3 tanNorm, float3 tangent, float3 normal, float3 bitangent)
+{
+	return normalize(tanNorm.x * tangent + tanNorm.y * bitangent + tanNorm.z * normal);
+}
+
 //Assigned at runtime
 TextureCube IrradianceMap: register(t3);
 TextureCube SpecularEnvMap: register(t4);

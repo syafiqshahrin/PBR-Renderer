@@ -108,6 +108,7 @@
     <FxCompile Include="Shaders\SpecularEnvMapPixShader.hlsl" />
     <FxCompile Include="Shaders\SpecularBRDFPixShader.hlsl" />
     <FxCompile Include="Shaders\SpecularBRDFVertShader.hlsl" />
+    <FxCompile Include="Shaders\BlinnPhongPixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -194,11 +195,15 @@
     <ClInclude Include="MaterialEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Movement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Materials\PBRTestMaterial.mimp" />
     <None Include="Shaders\Buffers.hlsli" />
     <None Include="Shaders\MaterialShaders\BasePBR.msimp" />
     <None Include="Shaders\Lighting.hlsli" />
+    <None Include="Shaders\MaterialShaders\BlinnPhong.msimp" />
   </ItemGroup>
 </Project>

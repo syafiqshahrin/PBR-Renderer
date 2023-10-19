@@ -153,7 +153,7 @@ void MaterialAsset::InitialiseParamBuffer(std::vector<ShaderParam> const& param)
 		{
 			ParameterBuffer.BufferData.ParamList[sp.offset] = sp.valueF;
 		}
-		else if (sp.type == ShaderParamType::VECTOR)
+		else if (sp.type == ShaderParamType::VECTOR || sp.type == ShaderParamType::COLOR)
 		{
 			ParameterBuffer.BufferData.ParamList[sp.offset] = sp.valueV.x;
 			ParameterBuffer.BufferData.ParamList[sp.offset + 1] = sp.valueV.y;
