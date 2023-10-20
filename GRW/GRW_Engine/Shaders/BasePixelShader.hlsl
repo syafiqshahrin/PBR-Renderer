@@ -40,8 +40,6 @@ Texture2D RMATex: register(t2);
 SamplerState samplerTest: register(s0);
 
 
-
-
 float4 main(VSOutput pIN) : SV_TARGET
 {
 	//Time
@@ -166,7 +164,7 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 iblDiffuse = irradiance * baseColor.rgb;
 
 	//Spec ambient term
-	const float MAX_REFLECTION_LOD = 4.0;
+	//const float MAX_REFLECTION_LOD = 4.0;
 	float3 specEnvMap = SpecularEnvMap.SampleLevel(samplerTest, R, r * MAX_REFLECTION_LOD).rgb;
 	float2 envBRDF = SpecIntBRDF.Sample(samplerTest, float2(max(dot(N, -V), 0.0), r)).rg;
 	float3 specular = specEnvMap * (kS * envBRDF.x + envBRDF.y);

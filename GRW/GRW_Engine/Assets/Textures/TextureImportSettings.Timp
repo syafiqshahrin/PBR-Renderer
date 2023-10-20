@@ -127,6 +127,30 @@
 			"BitsPerPixel": 8,
 			"GenerateMips": true,
 			"Format": 28
+		},
+		{
+			"name": "_Color.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 29
+		},
+		{
+			"name": "_RMA.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 28
+		},
+		{
+			"name": "_Normal.png",
+			"Components": 4,
+			"HDR": false,
+			"BitsPerPixel": 8,
+			"GenerateMips": true,
+			"Format": 28
 		}
 
 	]

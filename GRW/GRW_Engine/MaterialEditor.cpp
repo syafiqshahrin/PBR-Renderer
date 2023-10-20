@@ -167,10 +167,12 @@ void MaterialEditor::RenderTextureParameters()
     ImGui::Text("Textures");
     for (int i = 0; i < MaterialTextureParamList.size(); i++)
     {
+        //DEBUG(MaterialTextureParamList[i].c_str());
         Texture2D* tex = AssetManager::GetAssetManager()->GetAsset<Texture2D>(MaterialTextureList[i]);
         if (ImGui::ImageButton(tex->GetSRV().Get(), ImVec2(64, 64)))
         {
             currentIndex = i;
+            //DEBUG("Texture clicked: " << currentIndex)
             ImGui::OpenPopup("my_select_popup");
         }
 
@@ -216,7 +218,7 @@ void MaterialEditor::RenderShaderParameters()
     {
 
         ImGui::Text(MaterialShaderParamList[i].c_str());
-        ImGui::SameLine(100);
+        ImGui::SameLine(150);
         if (CurrentMaterialData->parametersMap[MaterialShaderParamList[i]].type == ShaderParamType::SCALAR)
         {
             float val = CurrentMaterial->GetScalarParam(MaterialShaderParamList[i]);

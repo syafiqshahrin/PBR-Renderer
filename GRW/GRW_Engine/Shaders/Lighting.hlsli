@@ -1,6 +1,7 @@
 #pragma once
 
 static const float PI = 3.14159265f;
+static const float MAX_REFLECTION_LOD = 4.0;
 
 float3 FresnelSchlick(float3 baseC, float metal, float3 v, float3 h)
 {

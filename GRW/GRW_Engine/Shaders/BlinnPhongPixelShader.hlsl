@@ -50,17 +50,24 @@ float4 main(VSOutput pIN) : SV_TARGET
 
 	float3 N = GetTangentToWorlNormals(texNorm, T, Nv, B);
 	float3 V = normalize(CamWS.rgb - pIN.posWS.xyz);
-
+	float3 R = reflect(-V, N);
 	float3 L = normalize(DirectionaLightWS.rgb * -1);
 	float3 H = normalize(L + V);
 
 	float NDL = max(dot(N, L), 0.0);
 
-	float BlinnPhongSpec = pow(saturate(dot(H, N)), SpecularStrength);
-	float4 Spec = BlinnPhongSpec * Specular.r;
-	float4 Diffuse = baseColor;
-	//float4 Light = NDL * (lightCol + (lightCol * BlinnPhongSpec)) + Ambient;
-	float4 Light = ((Diffuse + Spec) * NDL) + (Diffuse * Ambient * (1 - NDL));
+	float BlinnPhongSpec = pow(saturate(dot(H, N)), SpecularStrength * Specular.r);
+	float4 Diffuse = (baseColor / PI) * 0.3f;
+	float4 Spec = saturate(BlinnPhongSpec * Specular.r) + baseColor;
+	float3 irradiance = IrradianceMap.Sample(baseSampler, N.xyz);
+	float3 specEnvMap = SpecularEnvMap.SampleLevel(baseSampler, R, (1 - Specular.r ) * MAX_REFLECTION_LOD).rgb;
+
+	//For IBL
+	//float3 amb = (((irradiance * 0.3) + (specEnvMap * 0.7)) * Diffuse * (1 - NDL));
+	//float4 Light = ((Diffuse + Spec) * NDL) + float4(amb.rgb, 1);
+	
+	float4 Light = ((Diffuse + (Spec * 0.7)) * NDL) + ((baseColor * Ambient ) * (1 - NDL) * Specular.b);
+	Light *= pow(Light.rgba , (1.0 / 2.2));
 	//float4 color = saturate(baseColor * Light);
 
 	return Light;
