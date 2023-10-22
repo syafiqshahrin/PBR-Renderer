@@ -368,6 +368,18 @@ int Application::ApplicationUpdate()
 #pragma endregion
        
 #pragma region Draw Loop
+
+#pragma region Shadowmap
+        //Create depth stencil buffer specifically for shadow map
+            //Create texture2d resource
+            //Create depthstencil state
+            //Bund depthstencil state    
+        //bind nullptr render target and set the above depthstencil buffer as the depth render target
+        //Render opaque objects with shadowpass shader (basic vertex shader and null pixel shader)
+#pragma endregion
+
+
+
         frameCBuffer.BindBuffer(AppRenderer, 0);
         ObjectCbuffer.BindBuffer(AppRenderer, 1);
 

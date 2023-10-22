@@ -173,10 +173,10 @@ void Renderer::UpdateBlendState()
 bool Renderer::InitializeDepthStencilBuffer()
 {
     //Fill tex2d desc struct
-    D3D11_TEXTURE2D_DESC backbufferDesc;
-    backBufferTexResource->GetDesc(&backbufferDesc);
-    DepthStencilTexDesc.Width = backbufferDesc.Width;
-    DepthStencilTexDesc.Height = backbufferDesc.Height;
+    D3D11_TEXTURE2D_DESC DepthBufferTexDesc;
+    backBufferTexResource->GetDesc(&DepthBufferTexDesc);
+    DepthStencilTexDesc.Width = DepthBufferTexDesc.Width;
+    DepthStencilTexDesc.Height = DepthBufferTexDesc.Height;
     DepthStencilTexDesc.MipLevels = 1;
     DepthStencilTexDesc.ArraySize = 1;
     DepthStencilTexDesc.Format = DXGI_FORMAT_R32_TYPELESS;
