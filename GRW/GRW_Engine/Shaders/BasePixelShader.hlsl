@@ -85,7 +85,15 @@ float4 main(VSOutput pIN) : SV_TARGET
 	float3 H1 = normalize(L1 + V);
 	float NDL1 = max(dot(N, L1), 0.0);
 	float dist1 = length(PLightPos.xyz - pIN.posWS.xyz);
-	float3 lightCol1 = PLightCol.rgb * (PLightCol.a * (1 / pow(dist1, 2)));
+	
+	float d2 = dist1 * dist1;
+	float rad = PLightPos.w;
+	float r2 = rad * rad;
+	
+	//testing different attenuation formulas
+	//float att1 = PLightCol.a * ( (2 / r2) * (1 - (dist1 / sqrt(d2 + r2) ) ) );
+	float att1 = PLightCol.a * (1 / d2);
+	float3 lightCol1 = PLightCol.rgb * att1;
 
 	//Blinn Phong + Lambert Lighting
 	/*

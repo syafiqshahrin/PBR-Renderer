@@ -199,7 +199,7 @@ int Application::ApplicationUpdate()
     Transform pLight;
     pLight.SetPosition(Vector3(-3.0f, 0.0f, 5.0f));
     Vector3 plColor = Vector3(0.8f, 0.0f, 0.6f);
-    PointLight pointLight1(pLight, 5.0f, plColor, 4.0f);
+    PointLight pointLight1(pLight, 5.0f, plColor, 1.0f);
 #pragma endregion
     
 #pragma region Cbuffer setup temp
