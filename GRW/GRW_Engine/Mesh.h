@@ -52,8 +52,13 @@ struct SubMesh
     std::vector<unsigned int> indices;
     std::vector<vertex> VertexList;
 
+};
+
+struct SubMeshBuffer
+{
     Microsoft::WRL::ComPtr<ID3D11Buffer> VertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> IndexBuffer;
+    unsigned int indicesSize;
 };
 
 class Mesh
@@ -68,6 +73,7 @@ public:
     int GetIndexListSize(int submesh);
 private:    
     std::vector<SubMesh> Submeshes;
+    std::vector<SubMeshBuffer> MeshBuffers;
 	std::string FilePath;
 
 	void LoadMeshFromFile();

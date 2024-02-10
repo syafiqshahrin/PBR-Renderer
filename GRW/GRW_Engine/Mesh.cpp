@@ -33,8 +33,8 @@ void Mesh::BindMesh(int submesh, Renderer* renderer)
 {
 	const UINT stride = sizeof(vertex);
 	const UINT offset = 0u;
-	renderer->gfxContext->IASetVertexBuffers(0u, 1u, Submeshes[submesh].VertexBuffer.GetAddressOf(), &stride, &offset);
-	renderer->gfxContext->IASetIndexBuffer(Submeshes[submesh].IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	renderer->gfxContext->IASetVertexBuffers(0u, 1u, MeshBuffers[submesh].VertexBuffer.GetAddressOf(), &stride, &offset);
+	renderer->gfxContext->IASetIndexBuffer(MeshBuffers[submesh].IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	renderer->gfxContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -53,7 +53,7 @@ void Mesh::UpdateVertexList()
 
 int Mesh::GetIndexListSize(int submesh)
 {
-	return Submeshes[submesh].indices.size();
+	return MeshBuffers[submesh].indicesSize;
 }
 
 void Mesh::LoadMeshFromFile()
@@ -62,12 +62,15 @@ void Mesh::LoadMeshFromFile()
 	for (int i = 0; i < meshLoader.GetSubmesh(); i++)
 	{
 		SubMesh newSubMesh;
+		SubMeshBuffer newBuffer;
 		meshLoader.GetVertexPositions(i, newSubMesh.positions);
 		meshLoader.GetIndices(i, newSubMesh.indices);
 		meshLoader.GetNormals(i, newSubMesh.normals);
 		meshLoader.GetUVs(i, newSubMesh.uvs);
 		meshLoader.GetTangents(i, newSubMesh.tangents);
+		newBuffer.indicesSize = newSubMesh.indices.size();
 		Submeshes.push_back(newSubMesh);
+		MeshBuffers.push_back(newBuffer);
 	}
 
 }
@@ -75,7 +78,7 @@ void Mesh::LoadMeshFromFile()
 bool Mesh::CreateBuffers(Renderer* renderer)
 {
 	HRESULT hr;
-	for (int i = 0; i < Submeshes.size(); i++)
+	for (int i = 0; i < MeshBuffers.size(); i++)
 	{
 		D3D11_BUFFER_DESC verBufferDesc;
 		verBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -85,9 +88,14 @@ bool Mesh::CreateBuffers(Renderer* renderer)
 		verBufferDesc.MiscFlags = 0u;
 
 		D3D11_SUBRESOURCE_DATA srd;
-		srd.pSysMem = Submeshes[i].VertexList.data();
 
-		hr = renderer->gfxDevice->CreateBuffer(&verBufferDesc, &srd, &Submeshes[i].VertexBuffer);
+		std::vector<vertex> pos = Submeshes[i].VertexList;
+		//std::copy(Submeshes[i].VertexList.begin(), Submeshes[i].VertexList.end(), pos);
+
+		//srd.pSysMem = Submeshes[i].VertexList.data();
+		srd.pSysMem = pos.data();
+
+		hr = renderer->gfxDevice->CreateBuffer(&verBufferDesc, &srd, &MeshBuffers[i].VertexBuffer);
 		if (FAILED(hr))
 		{
 			_com_error error(hr);
@@ -109,9 +117,13 @@ bool Mesh::CreateBuffers(Renderer* renderer)
 		indBufferDesc.CPUAccessFlags = 0u;
 		indBufferDesc.MiscFlags = 0u;
 
-		srd.pSysMem = Submeshes[i].indices.data();
+		//std::vector<unsigned int> ind;
+		//std::copy(Submeshes[i].indices.begin(), Submeshes[i].indices.end(), ind);
 
-		hr = renderer->gfxDevice->CreateBuffer(&indBufferDesc, &srd, &Submeshes[i].IndexBuffer);
+		srd.pSysMem = Submeshes[i].indices.data();
+		//srd.pSysMem = ind.data();
+
+		hr = renderer->gfxDevice->CreateBuffer(&indBufferDesc, &srd, &MeshBuffers[i].IndexBuffer);
 		if (FAILED(hr))
 		{
 			_com_error error(hr);
@@ -121,7 +133,27 @@ bool Mesh::CreateBuffers(Renderer* renderer)
 			return false;
 		}
 
+
+
+		//free up memory
+		/*
+		Submeshes[i].VertexList.clear();
+		Submeshes[i].VertexList.shrink_to_fit();
+		Submeshes[i].positions.clear();
+		Submeshes[i].positions.shrink_to_fit();
+		Submeshes[i].uvs.clear();
+		Submeshes[i].uvs.shrink_to_fit();
+		Submeshes[i].tangents.clear();
+		Submeshes[i].tangents.shrink_to_fit();
+		Submeshes[i].normals.clear();
+		Submeshes[i].normals.shrink_to_fit();
+		*/
 	}
+
+	//free up memory
+	Submeshes.clear();
+	Submeshes.shrink_to_fit();
+	
 
 	return true;
 }
