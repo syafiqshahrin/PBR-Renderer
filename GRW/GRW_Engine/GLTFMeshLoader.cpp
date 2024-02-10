@@ -65,24 +65,47 @@ void GLTFMeshLoader::GetIndices(int submeshIndex, std::vector<unsigned int>& ind
 
 	std::vector<unsigned int> s;
 
-	for (unsigned int j = start, k = 0; j < maxByteLength; j += 2, k++)
+	if (MeshInfo.UsingIntegerIndex)
 	{
-		std::byte sl[2];
-		char cl[4];
+		for (unsigned int j = start, k = 0; j < maxByteLength; j += 4, k++)
+		{
+			std::byte sl[4];
+			char cl[4];
 
-		sl[0] = MeshDecodedData[j];
-		sl[1] = MeshDecodedData[j+1];
+			sl[0] = MeshDecodedData[j];
+			sl[1] = MeshDecodedData[j + 1];
+			sl[2] = MeshDecodedData[j + 2];
+			sl[3] = MeshDecodedData[j + 3];
 
-	
 
-		//std::string test = cl;
 
-		s.push_back(0);
-		std::memcpy(&s[k], sl, sizeof(unsigned short));
-		//s[k] = test1;
+			//std::string test = cl;
+
+			s.push_back(0);
+			std::memcpy(&s[k], sl, sizeof(unsigned int));
+			//s[k] = test1;
+		}
 	}
+	else
+	{
+		for (unsigned int j = start, k = 0; j < maxByteLength; j += 2, k++)
+		{
+			std::byte sl[2];
+			char cl[4];
+
+			sl[0] = MeshDecodedData[j];
+			sl[1] = MeshDecodedData[j + 1];
 
 
+
+			//std::string test = cl;
+
+			s.push_back(0);
+			std::memcpy(&s[k], sl, sizeof(unsigned short));
+			//s[k] = test1;
+		}
+	}
+	
 	for (int i = 0, k = 0; i < s.size(); i++, k++)
 	{
 		//unsigned int t = 0;
@@ -192,6 +215,10 @@ void GLTFMeshLoader::LoadJSonFile()
 
 		int accessorIndIndex = GLTFJsonData["meshes"][0]["primitives"][i]["indices"];
 		int bufferViewIndIndex = GLTFJsonData["accessors"][accessorIndIndex]["bufferView"];
+		int indexType = GLTFJsonData["accessors"][accessorIndIndex]["componentType"];
+
+		MeshInfo.UsingIntegerIndex = (indexType == 5125);
+		//MeshInfo.UsingIntegerIndex = false;
 
 		MeshInfo.IndStartOffset.push_back(GLTFJsonData["bufferViews"][bufferViewIndIndex]["byteOffset"]);
 		MeshInfo.IndByteLength.push_back(GLTFJsonData["bufferViews"][bufferViewIndIndex]["byteLength"]);

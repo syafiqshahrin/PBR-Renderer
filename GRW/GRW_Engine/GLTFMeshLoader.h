@@ -6,8 +6,8 @@
 
 struct GLTFMeshInfo
 {
-	int MaxBufferLength;
-	int submeshes;
+	unsigned int MaxBufferLength;
+	unsigned int submeshes;
 	std::string MeshName;
 
 	std::vector<int> PosStartOffset;
@@ -24,6 +24,7 @@ struct GLTFMeshInfo
 
 	std::vector<int> TangentStartOffset;
 	std::vector<int> TangentByteLength;
+	bool UsingIntegerIndex;
 };
 
 class GLTFMeshLoader
