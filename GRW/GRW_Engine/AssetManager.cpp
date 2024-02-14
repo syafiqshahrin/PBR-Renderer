@@ -7,6 +7,7 @@
 #include "json.hpp"
 #include "Renderer.h"
 #include "Material.h"
+#include <thread>
 
 AssetManager* AssetManager::Instance = nullptr;
 
@@ -240,6 +241,10 @@ void AssetManager::LoadTextureAssets()
 
 		TextureImportSettings.insert({ setting.name, setting });
 	}
+	///*
+	DEBUG("Textures Loading");
+
+	std::vector<std::thread> threads;
 
 	//for each path in texture path map
 	for (std::map<std::string, std::string>::iterator it = TexturePaths.begin(); it != TexturePaths.end(); it++)
@@ -247,22 +252,49 @@ void AssetManager::LoadTextureAssets()
 		TextureImportSetting T = TextureImportSettings[it->first];
 
 		TextureMap.insert({it->first, Texture2D(it->first, it->second, T.Components, T.HDR)});
+		threads.push_back(std::thread(&Texture2D::LoadTextureFromFile, &(TextureMap[it->first])));
+	}
+
+
+	for (std::thread& t : threads)
+	{
+		t.join();
+	}
+
+	DEBUG("Textures Loading Completed");
+	//*/
+	for (std::map<std::string, std::string>::iterator it = TexturePaths.begin(); it != TexturePaths.end(); it++)
+	{
+		TextureImportSetting T = TextureImportSettings[it->first];
+		//TextureMap.insert({ it->first, Texture2D(it->first, it->second, T.Components, T.HDR) });
 		TextureMap[it->first].CreateTextureFromFile(renderer, T.BitsPerPixel, T.GenerateMips, T.Format);
+
 	}
 
 }
 
 void AssetManager::LoadMeshAssets()
 {
+	std::vector<std::thread> threads;
+
 	for (std::map<std::string, std::string>::iterator it = MeshPaths.begin(); it != MeshPaths.end(); it++)
 	{
 		MeshMap.insert({ it->first, Mesh(it->second) });
-		MeshMap[it->first].CreateMeshFromFile(renderer);
+		//std::thread t(&Mesh::CreateMeshFromFile, &(MeshMap[it->first]), renderer);
+
+		threads.push_back(std::thread (&Mesh::CreateMeshFromFile, &(MeshMap[it->first]), renderer));
+		//MeshMap[it->first].CreateMeshFromFile(renderer);
+	}
+
+	for (std::thread &t : threads)
+	{
+		t.join();
 	}
 }
 
 void AssetManager::LoadShaderAssets()
 {
+	DEBUG("Loading Shader");
 	for (std::map<std::string, std::string>::iterator it = VertexShaderPaths.begin(); it != VertexShaderPaths.end(); it++)
 	{
 		VertexShaderMap.insert({ it->first, VertexShader(it->second) });
@@ -275,8 +307,12 @@ void AssetManager::LoadShaderAssets()
 		PixelShaderMap[it->first].CreateShader(renderer);
 	}
 
+	//std::vector<std::thread> threads;
+
 	for (std::map<std::string, std::string>::iterator it = MaterialShaderPaths.begin(); it != MaterialShaderPaths.end(); it++)
 	{
+
+
 		std::ifstream f(it->second);
 		nlohmann::json  materialShaderImport = nlohmann::json::parse(f);
 		nlohmann::json materialShaderData = materialShaderImport["MaterialShader"];
@@ -315,11 +351,12 @@ void AssetManager::LoadShaderAssets()
 
 		MaterialShaderImportData.insert({ it->first, materialShader });
 	}
-
+	DEBUG("Loading Shader Completed");
 }
 
 void AssetManager::LoadMaterialAssets()
 {
+	DEBUG("Loading Materials");
 	for (std::map<std::string, std::string>::iterator it = MaterialAssetPaths.begin(); it != MaterialAssetPaths.end(); it++)
 	{
 		std::ifstream f(it->second);
@@ -381,6 +418,8 @@ void AssetManager::LoadMaterialAssets()
 			it->second.cull, it->second.fill);
 		*/
 	}
+
+	DEBUG("Loading Materials Completed");
 }
 
 std::string AssetManager::GetFileNameFromPath(std::string path)
@@ -419,9 +458,15 @@ AssetManager::~AssetManager()
 
 bool AssetManager::LoadAllAssets()
 {
+	
 	LoadAssetPaths();
-	LoadTextureAssets();
-	LoadMeshAssets();
+	std::thread t1(&AssetManager::LoadTextureAssets, this);
+	std::thread t2(&AssetManager::LoadMeshAssets, this);
+	//LoadTextureAssets();
+	//LoadMeshAssets();
+	t1.join();
+	t2.join();
+
 	LoadShaderAssets();
 	LoadMaterialAssets();
 	return false;

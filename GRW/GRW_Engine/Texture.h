@@ -35,10 +35,10 @@ public:
 	void ReleaseTexture();
 	void SetFilePath(std::string path);
 	const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetSRV();
+	void LoadTextureFromFile();
 	std::string GetName();
 private:
 	std::string TextureName;
-	void LoadTextureFromFile();
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture2DResource;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureShaderView;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> TextureRenderView;

@@ -46,6 +46,7 @@ Application::~Application()
 void Application::StartApplication()
 {
     AssetManager::GetAssetManager()->LoadAllAssets();
+    DEBUG("Loaded all assets");
     Deltatime = 0;
 	//initialise resources and other stuff here
         //create and initialise transforms array (keeps track of all transforms)
@@ -273,24 +274,24 @@ int Application::ApplicationUpdate()
 
 #pragma region Generate cubemap
     TextureCube HDRICubeMap;
+    TextureCube IrradianceCubeMap;
+    TextureCube SpecularEnvMap;
+    Texture2D SpecularIntegrationBRDF("SpecularBRDF");
+    
     HDRICubeMap.CreateCubeMapRenderTexture(AppRenderer, 512, 512);
     HDRICubeMap.RenderHDRIToCubeMap(AppRenderer, AppWindow, *HDRI);
     HDRICubeMap.BindTexture(AppRenderer, 3);
     DiffuseTex->BindTexture(AppRenderer, 0);
 
-    TextureCube IrradianceCubeMap;
     IrradianceCubeMap.CreateCubeMapRenderTexture(AppRenderer, 128, 128);
     IrradianceCubeMap.RenderPrefilteredCubeMap(AppRenderer, AppWindow, HDRICubeMap, *hdrVertShader, *hdrPixShader);
     IrradianceCubeMap.BindTexture(AppRenderer, 3);
     //genCubeMap.BindTexture(AppRenderer, 3);
 
-    /**/
-    TextureCube SpecularEnvMap;
     SpecularEnvMap.CreateCubeMapRenderTexture(AppRenderer,128, 128, 8, 4, DXGI_FORMAT_R8G8B8A8_UNORM, true, 5);
     SpecularEnvMap.RenderPrefilteredCubeWithMips(AppRenderer, AppWindow, HDRICubeMap, *specEnvVertShader, *specEnvPixShader);
     SpecularEnvMap.BindTexture(AppRenderer, 4);
 
-    Texture2D SpecularIntegrationBRDF("SpecularBRDF");
     SpecularIntegrationBRDF.CreateRenderTexture(AppRenderer,512, 512, 16, 2, DXGI_FORMAT_R16G16_UNORM);
     SpecularIntegrationBRDF.RenderToTexture(AppRenderer, AppWindow, *specBRDFVertShader, *specBRDFPixShader);
     SpecularIntegrationBRDF.BindTexture(AppRenderer, 5);

@@ -48,7 +48,7 @@ Texture2D::~Texture2D()
 bool Texture2D::CreateTextureFromFile(Renderer* renderer, int bitsperpixel, bool genMips, DXGI_FORMAT format)
 {
     IsRenderTexture = false;
-    LoadTextureFromFile();
+    //LoadTextureFromFile();
 
     if (!genMips)
     {
@@ -259,6 +259,7 @@ std::string Texture2D::GetName()
 
 void Texture2D::LoadTextureFromFile()
 {
+    DEBUG("Texture: " << TextureName.c_str() << " Loading");
     if (HDR)
     {
         //TextureDataF = stbi_loadf(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
@@ -271,6 +272,7 @@ void Texture2D::LoadTextureFromFile()
         TextureData = stbi_load(FilePath.c_str(), &TexDimensionsW, &TexDimensionsH, &pixelComponent, component);
     }
     RowPitch = TexDimensionsW * component;
+    DEBUG("Texture: " << TextureName.c_str() << " Loading Completed");
 }
 #pragma endregion
 

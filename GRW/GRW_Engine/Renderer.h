@@ -14,9 +14,6 @@ public:
 	bool SetWindowed(bool Windowed);
 	void SetPrimitiveRenderingMode(const PrimType primitive);
 
-	bool BindVertexBuffer();
-	bool BindIndexBuffer();
-	bool BindShader();
 
 	Microsoft::WRL::ComPtr<ID3D11Device> gfxDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> gfxContext;
